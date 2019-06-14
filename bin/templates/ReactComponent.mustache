@@ -4,11 +4,18 @@ import React from 'react';
 {{/antdImports}}
 
 class {{{componentType}}} extends React.Component {
+{{#handlers}}
+{{{.}}}
+{{/handlers}}
   render() {
+{{#render.declares}}
+{{{.}}}
+{{/render.declares}}
     return (
 {{{render.return}}}
     );
   }
 }
 
-export default {{{componentType}}};
+const Wrapped{{{componentType}}} = Form.create({ name: '{{{componentType}}}' })({{{componentType}}});
+export default Wrapped{{{componentType}}};

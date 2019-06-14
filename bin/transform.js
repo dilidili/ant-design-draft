@@ -6,18 +6,107 @@ const ReactComponentTpl = fs.readFileSync(path.join(__dirname, './templates/Reac
 
 const transformFormField = (fieldValue, entries) => {
   const {
-    onSubmit,
+    items,
     ...formProps
   } = fieldValue;
 
-  entries.antdImports.push('Form');
-
-  entries.render.return.push({
+  const formElement = {
     type: 'Form',
-    props: {
-      ...formProps,
-    },
-  })
+    props: formProps,
+    children: [],
+  };
+
+  // FormItem
+  if (items && items.length) {
+    items.forEach(formItem => {
+      const {
+        type,
+        onSubmit,
+        name,
+        rules: formItemRules,
+        props: formItemProps,
+      } = formItem;
+
+      // field rules
+      const rules = [];
+      (formItemRules || []).forEach(rule => {
+        if (rule === 'required') {
+          rules.push(`{ required: true, message: 'Please input your ${formItem.name}!' }`);
+        }
+      });
+
+      // field children
+      let children = [];
+      if (type === 'Input') {
+        entries.antdImports.add('Input');
+        children.push({
+          type: 'Input',
+          props: formItemProps,
+        });
+      } else if (type === 'Button') {
+        entries.antdImports.add('Button');
+
+        if (onSubmit) {
+          formItemProps.htmlType = "submit";
+        }
+
+        children.push({
+          type: 'Button',
+          props: formItemProps,
+        });
+      }
+
+      // form submit
+      if (onSubmit) {
+        entries.handlers.push(`
+  handleSubmit = e => {
+    e.preventDefault();
+    this.props.form.validateFields((err, values) => {
+      if (!err) {
+        console.log('Received values of form: ', values);
+      }
+    });
+  };
+`)
+
+        formProps.onSubmit = {
+          type: 'refrence',
+          payload: 'this.handleSubmit',
+        }
+      }
+
+      // children
+      if (name) {
+        children = [{
+          type: 'custom',
+          children,
+          render: (indent) => {
+            return {
+              start: (
+                indent + `{getFieldDecorator('${formItem.name}', {\n`
+                + indent + '  ' + `rules: [${rules.join(', ')}]\n` +
+                indent + '})('
+              ),
+              end: (
+                indent + `)}`
+              )
+            }
+          },
+        }]
+      }
+
+      const formItemElement = {
+        type: 'Form.Item',
+        children,
+      };
+
+      formElement.children.push(formItemElement);
+    });
+  }
+
+  entries.antdImports.add('Form');
+  entries.render.return.push(formElement);
+  entries.render.declares.push('    const { getFieldDecorator } = this.props.form;');
 }
 
 const transformField = (fieldName, fieldValue, entries) => {
@@ -34,17 +123,21 @@ const transformField = (fieldName, fieldValue, entries) => {
 
 const renderProps = (props = {}) => {
   return Object.keys(props).reduce((r, k) => {
-    if (typeof props[k] === 'string') {
+    const prop = props[k];
+
+    if (typeof prop === 'string') {
       return r + ` ${k}="${props[k]}"`
+    } else if (prop && prop.type === 'refrence') {
+      return r + ` ${k}={${props[k].payload}}`
     }
 
     return r;
   }, '')
 };
 
-const renderElements = (children, indentNums) => {
+const renderElements = (children = [], indentNums) => {
   const indent = ' '.repeat(indentNums);
-  const ret = [];
+  let ret = [];
 
   children.forEach(child => {
     const {
@@ -53,10 +146,15 @@ const renderElements = (children, indentNums) => {
 
     const props = renderProps(child.props);
 
-    if (child.children && child.children.length > 0) {
-      ret.push(`${indent}<Form${props}>`);
+    if (type === 'custom') {
+      const { start, end } = child.render(indent);
+      ret.push(start); 
       ret = ret.concat(renderElements(child.children, indentNums + 2));
-      ret.push(`${indent}</Form>`);
+      ret.push(end); 
+    } else if (child.children && child.children.length > 0) {
+      ret.push(`${indent}<${type}${props}>`);
+      ret = ret.concat(renderElements(child.children, indentNums + 2));
+      ret.push(`${indent}</${type}>`);
     } else {
       ret.push(`${indent}<${type}${props} />`);
     }
@@ -68,17 +166,20 @@ const renderElements = (children, indentNums) => {
 const generate = (entries) => {
   const {
     antdImports,
+    handlers,
   } = entries;
 
   const view = {
     componentType: entries.componentType,
+    handlers,
     render: {
+      ...entries.render,
       return: '',
     }
   };
 
-  if (antdImports && antdImports.length > 0) {
-    view.antdImports = `import { ${antdImports.join(', ')} } from 'antd';`
+  if (antdImports && antdImports.size) {
+    view.antdImports = `import { ${[...antdImports].join(', ')} } from 'antd';`
   } else {
     view.antdImports = null;
   }
@@ -92,8 +193,10 @@ const generate = (entries) => {
 
 const transform = (schema = {}) => {
   const entries = {
-    antdImports: [],
+    antdImports: new Set(),
+    handlers: [],
     render: {
+      declares: [],
       return: [],
     },
   };
@@ -104,7 +207,8 @@ const transform = (schema = {}) => {
 
   // generate
   const content = generate(entries);
-  console.log(content);
+
+  fs.writeFileSync(path.join(__dirname, '../src/pages/examples/horizontal-login-form.tsx'), content, 'utf8');
 }
 
 module.exports = transform;

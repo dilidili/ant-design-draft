@@ -69,32 +69,39 @@ const schema = {
 
   form: {
     layout: 'inline',
-    onSubmit: true,
+
+    items: [
+      // username
+      {
+        name: 'username',
+        rules: ['required'],
+  
+        type: 'Input',
+      },
+  
+      // password
+      {
+        name: 'password',
+        rules: ['required'],
+  
+        type: 'Input',
+      },
+
+      // login button
+      {
+        type: 'Button',
+        onSubmit: true,
+        props: {
+          type: 'primary',
+          children: 'Log in',
+        } 
+      },
+    ],
   },
-
-  formItemList: [
-    // username
-    {
-      name: 'username',
-      rules: ['required'],
-
-      type: 'Input',
-    },
-
-    // password
-    {
-      name: 'password',
-      rules: ['required'],
-
-      type: 'Input',
-    },
-  ],
 }
 
 describe('Transform: horizontal login form', () => {
   it('transform correctly', () => {
     const content = transformSchema(schema);
-    console.log(content);
   });
 });
-
