@@ -7,7 +7,7 @@ const ReactComponentTpl = fs.readFileSync(path.join(__dirname, './templates/Reac
 const transformFormField = (fieldValue, entries) => {
   const {
     items,
-    ...formProps
+    props: formProps = {},
   } = fieldValue;
 
   const formElement = {
