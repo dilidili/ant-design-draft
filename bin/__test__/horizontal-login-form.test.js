@@ -1,4 +1,6 @@
 const transformSchema = require('../transform');
+const path = require('path');
+const fs = require('fs');
 
 const output = `import { Form, Icon, Input, Button } from 'antd';
 
@@ -85,6 +87,9 @@ const schema = {
         rules: ['required'],
   
         type: 'Input',
+        props: {
+          type: 'password',
+        },
       },
 
       // login button
@@ -103,5 +108,7 @@ const schema = {
 describe('Transform: horizontal login form', () => {
   it('transform correctly', () => {
     const content = transformSchema(schema);
+
+    fs.writeFileSync(path.join(__dirname, '../../src/pages/examples/horizontal-login-form.tsx'), content, 'utf8');
   });
 });

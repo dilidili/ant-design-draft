@@ -208,7 +208,7 @@ const transform = (schema = {}) => {
   // generate
   const content = generate(entries);
 
-  fs.writeFileSync(path.join(__dirname, '../src/pages/examples/horizontal-login-form.tsx'), content, 'utf8');
+  return content;
 }
 
 module.exports = transform;

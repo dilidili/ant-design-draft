@@ -27,7 +27,7 @@ class HorizontalLoginForm extends React.Component {
           {getFieldDecorator('password', {
             rules: [{ required: true, message: 'Please input your password!' }]
           })(
-            <Input />
+            <Input type="password" />
           )}
         </Form.Item>
         <Form.Item>
