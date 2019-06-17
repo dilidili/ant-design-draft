@@ -4,6 +4,14 @@ const path = require('path');
 
 const ReactComponentTpl = fs.readFileSync(path.join(__dirname, './templates/ReactComponent.mustache'), 'utf8');
 
+const decodeLiteralPrimative = value => {
+  if (typeof value === 'string') {
+    return `'${value}'`;
+  } else {
+    return value;
+  }
+};
+
 const transformFormField = (fieldValue, entries) => {
   const {
     items,
@@ -19,46 +27,70 @@ const transformFormField = (fieldValue, entries) => {
   // FormItem
   if (items && items.length) {
     items.forEach(formItem => {
-      const {
-        type,
-        onSubmit,
-        name,
-        rules: formItemRules,
-        props: formItemProps,
-      } = formItem;
+      let formItemChildren = [];
 
-      // field rules
-      const rules = [];
-      (formItemRules || []).forEach(rule => {
-        if (rule === 'required') {
-          rules.push(`{ required: true, message: 'Please input your ${formItem.name}!' }`);
-        }
-      });
-
-      // field children
-      let children = [];
-      if (type === 'Input') {
-        entries.antdImports.add('Input');
-        children.push({
-          type: 'Input',
-          props: formItemProps,
-        });
-      } else if (type === 'Button') {
-        entries.antdImports.add('Button');
-
-        if (onSubmit) {
-          formItemProps.htmlType = "submit";
-        }
-
-        children.push({
-          type: 'Button',
-          props: formItemProps,
-        });
+      // support array as element of items
+      let formItemList = formItem;
+      if (!Array.isArray(formItem)) {
+        formItemList = [formItem];
       }
 
-      // form submit
-      if (onSubmit) {
-        entries.handlers.push(`
+      formItemList.forEach(formItem => {
+        const {
+          type,
+          onSubmit,
+          name,
+          valuePropName,
+          initialValue,
+          rules: formItemRules,
+          props: formItemProps,
+        } = formItem;
+  
+        // field rules
+        const rules = [];
+        (formItemRules || []).forEach(rule => {
+          if (rule === 'required') {
+            rules.push(`{ required: true, message: 'Please input your ${formItem.name}!' }`);
+          }
+        });
+
+        // field children
+        let children = [];
+        if (type === 'Input') {
+          entries.antdImports.add('Input');
+          children.push({
+            type: 'Input',
+            props: formItemProps,
+          });
+        } else if (type === 'Button') {
+          entries.antdImports.add('Button');
+
+          if (onSubmit) {
+            formItemProps.htmlType = "submit";
+          }
+
+          children.push({
+            type: 'Button',
+            props: formItemProps,
+          });
+        } else if (type === 'Checkbox') {
+          entries.antdImports.add('Checkbox');
+
+          children.push({
+            type: 'Checkbox',
+            props: formItemProps,
+          });
+        } else if (!!type) {
+          children.push({
+            type: type,
+            props: formItemProps,
+          });
+        }
+
+
+        // form submit
+        if (onSubmit) {
+          entries.handlers.push(`
   handleSubmit = e => {
     e.preventDefault();
     this.props.form.validateFields((err, values) => {
@@ -69,35 +101,43 @@ const transformFormField = (fieldValue, entries) => {
   };
 `)
 
-        formProps.onSubmit = {
-          type: 'refrence',
-          payload: 'this.handleSubmit',
+          formProps.onSubmit = {
+            type: 'refrence',
+            payload: 'this.handleSubmit',
+          }
         }
-      }
 
-      // children
-      if (name) {
-        children = [{
-          type: 'custom',
-          children,
-          render: (indent) => {
-            return {
-              start: (
-                indent + `{getFieldDecorator('${formItem.name}', {\n`
-                + indent + '  ' + `rules: [${rules.join(', ')}]\n` +
-                indent + '})('
-              ),
-              end: (
-                indent + `)}`
-              )
-            }
-          },
-        }]
-      }
+        // children
+        if (name) {
+          children = [{
+            type: 'custom',
+            children,
+            render: (indent) => {
+              const valuePropNameProp = valuePropName !== undefined ? indent + '  ' + `valuePropName: ${decodeLiteralPrimative(valuePropName)},\n` : '';
+              const initialValueProp = initialValue !== undefined ? indent + '  ' + `initialValue: ${decodeLiteralPrimative(initialValue)},\n` : ''
+
+              return {
+                start: (
+                  indent + `{getFieldDecorator('${formItem.name}', {\n`
+                  + indent + '  ' + `rules: [${rules.join(', ')}],\n`
+                  + valuePropNameProp
+                  + initialValueProp
+                  + indent + '})('
+                ),
+                end: (
+                  indent + `)}`
+                )
+              }
+            },
+          }]
+        }
+
+        formItemChildren = formItemChildren.concat(children);
+      })
 
       const formItemElement = {
         type: 'Form.Item',
-        children,
+        children: formItemChildren,
       };
 
       formElement.children.push(formItemElement);

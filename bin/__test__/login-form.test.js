@@ -2,9 +2,70 @@ const transformSchema = require('../transform');
 const path = require('path');
 const fs = require('fs');
 
-const output = `import { Form, Icon, Input, Button, Checkbox } from 'antd';
+// import { Form, Icon, Input, Button, Checkbox } from 'antd';
+
+// class NormalLoginForm extends React.Component {
+//   handleSubmit = e => {
+//     e.preventDefault();
+//     this.props.form.validateFields((err, values) => {
+//       if (!err) {
+//         console.log('Received values of form: ', values);
+//       }
+//     });
+//   };
+
+//   render() {
+//     const { getFieldDecorator } = this.props.form;
+//     return (
+//       <Form onSubmit={this.handleSubmit} className="login-form">
+//         <Form.Item>
+//           {getFieldDecorator('username', {
+//             rules: [{ required: true, message: 'Please input your username!' }],
+//           })(
+//             <Input
+//               prefix={<Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />}
+//               placeholder="Username"
+//             />,
+//           )}
+//         </Form.Item>
+//         <Form.Item>
+//           {getFieldDecorator('password', {
+//             rules: [{ required: true, message: 'Please input your Password!' }],
+//           })(
+//             <Input
+//               prefix={<Icon type="lock" style={{ color: 'rgba(0,0,0,.25)' }} />}
+//               type="password"
+//               placeholder="Password"
+//             />,
+//           )}
+//         </Form.Item>
+//         <Form.Item>
+//           {getFieldDecorator('remember', {
+//             valuePropName: 'checked',
+//             initialValue: true,
+//           })(<Checkbox>Remember me</Checkbox>)}
+//           <a className="login-form-forgot" href="">
+//             Forgot password
+//           </a>
+//           <Button type="primary" htmlType="submit" className="login-form-button">
+//             Log in
+//           </Button>
+//           Or <a href="">register now!</a>
+//         </Form.Item>
+//       </Form>
+//     );
+//   }
+// }
+
+// const WrappedNormalLoginForm = Form.create({ name: 'normal_login' })(NormalLoginForm);
+
+// ReactDOM.render(<WrappedNormalLoginForm />, mountNode);
+
+const output = `import React from 'react';
+import { Input, Checkbox, Button, Form } from 'antd';
 
 class NormalLoginForm extends React.Component {
+
   handleSubmit = e => {
     e.preventDefault();
     this.props.form.validateFields((err, values) => {
@@ -17,54 +78,48 @@ class NormalLoginForm extends React.Component {
   render() {
     const { getFieldDecorator } = this.props.form;
     return (
-      <Form onSubmit={this.handleSubmit} className="login-form">
+      <Form className="login-form" onSubmit={this.handleSubmit}>
         <Form.Item>
           {getFieldDecorator('username', {
             rules: [{ required: true, message: 'Please input your username!' }],
           })(
-            <Input
-              prefix={<Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />}
-              placeholder="Username"
-            />,
+            <Input placeholder="Username" />
           )}
         </Form.Item>
         <Form.Item>
           {getFieldDecorator('password', {
-            rules: [{ required: true, message: 'Please input your Password!' }],
+            rules: [{ required: true, message: 'Please input your password!' }],
           })(
-            <Input
-              prefix={<Icon type="lock" style={{ color: 'rgba(0,0,0,.25)' }} />}
-              type="password"
-              placeholder="Password"
-            />,
+            <Input type="password" placeholder="Password" />
           )}
         </Form.Item>
         <Form.Item>
           {getFieldDecorator('remember', {
+            rules: [],
             valuePropName: 'checked',
             initialValue: true,
-          })(<Checkbox>Remember me</Checkbox>)}
-          <a className="login-form-forgot" href="">
-            Forgot password
-          </a>
-          <Button type="primary" htmlType="submit" className="login-form-button">
-            Log in
-          </Button>
-          Or <a href="">register now!</a>
+          })(
+            <Checkbox children="Remember me" />
+          )}
+          <a className="login-form-forgot" href="" children="Forgot password" />
+          <Button type="primary" className="login-form-button" children="Log in" htmlType="submit" />
+          <a children="register now!" href="" />
         </Form.Item>
       </Form>
     );
   }
 }
 
-const WrappedNormalLoginForm = Form.create({ name: 'normal_login' })(NormalLoginForm);
-
-ReactDOM.render(<WrappedNormalLoginForm />, mountNode);`
+const WrappedNormalLoginForm = Form.create({ name: 'NormalLoginForm' })(NormalLoginForm);
+export default WrappedNormalLoginForm;`
 
 const schema = {
   componentType: 'NormalLoginForm',
 
   form: {
+    props: {
+      className: 'login-form',
+    },
     items: [
       // username
       {
@@ -72,6 +127,9 @@ const schema = {
         rules: ['required'],
   
         type: 'Input',
+        props: {
+          placeholder: 'Username',
+        }
       },
   
       // password
@@ -82,26 +140,50 @@ const schema = {
         type: 'Input',
         props: {
           type: 'password',
+          placeholder: 'Password',
         },
       },
 
-      // login button
-      {
+      // login button and remember me
+      [{
+        name: 'remember',
+        type: 'Checkbox',
+        valuePropName: 'checked',
+        initialValue: true,
+        props: {
+          children: 'Remember me',
+        },
+      }, {
+        type: 'a',
+        props: {
+          className: 'login-form-forgot',
+          href: '',
+          children: 'Forgot password',
+        },
+      }, {
         type: 'Button',
         onSubmit: true,
         props: {
           type: 'primary',
+          className: 'login-form-button',
           children: 'Log in',
         } 
-      },
+      }, {
+        type: 'a',
+        props: {
+          children: 'register now!',
+          href: '',
+        }
+      }],
     ],
   },
 }
 
-describe('Transform: horizontal login form', () => {
+describe('Transform: login form', () => {
   it('transform correctly', () => {
     const content = transformSchema(schema);
 
-    fs.writeFileSync(path.join(__dirname, '../../src/pages/examples/horizontal-login-form.tsx'), content, 'utf8');
+    expect(content).toEqual(output);
+    fs.writeFileSync(path.join(__dirname, '../../src/pages/examples/login-form.tsx'), content, 'utf8');
   });
 });

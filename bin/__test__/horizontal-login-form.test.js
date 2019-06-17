@@ -86,14 +86,14 @@ class HorizontalLoginForm extends React.Component {
       <Form layout="inline" onSubmit={this.handleSubmit}>
         <Form.Item>
           {getFieldDecorator('username', {
-            rules: [{ required: true, message: 'Please input your username!' }]
+            rules: [{ required: true, message: 'Please input your username!' }],
           })(
             <Input />
           )}
         </Form.Item>
         <Form.Item>
           {getFieldDecorator('password', {
-            rules: [{ required: true, message: 'Please input your password!' }]
+            rules: [{ required: true, message: 'Please input your password!' }],
           })(
             <Input type="password" />
           )}
@@ -154,7 +154,7 @@ describe('Transform: horizontal login form', () => {
   it('transform correctly', () => {
     const content = transformSchema(schema);
 
-    expect(output).toEqual(content);
     fs.writeFileSync(path.join(__dirname, '../../src/pages/examples/horizontal-login-form.tsx'), content, 'utf8');
+    expect(content).toEqual(output);
   });
 });
