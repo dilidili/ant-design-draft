@@ -278,7 +278,12 @@ const schema = {
       className: 'login-form',
       ...formItemLayout,
     },
-    items: [],
+    items: [{
+      name: 'email',
+      label: 'E-mail',
+      type: 'Input',
+      rules: ['required', 'email'],
+    }],
   },
 }
 

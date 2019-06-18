@@ -28,6 +28,7 @@ const transformFormField = (fieldValue, entries) => {
   if (items && items.length) {
     items.forEach(formItem => {
       let formItemChildren = [];
+      let formItemProps = {};
 
       // support array as element of items
       let formItemList = formItem;
@@ -40,17 +41,22 @@ const transformFormField = (fieldValue, entries) => {
           type,
           onSubmit,
           name,
+          label,
           valuePropName,
           initialValue,
           rules: formItemRules,
-          props: formItemProps,
+          props: formChildrenProps,
         } = formItem;
+
+        if (label) formItemProps.label = label;
   
         // field rules
         const rules = [];
         (formItemRules || []).forEach(rule => {
           if (rule === 'required') {
             rules.push(`{ required: true, message: 'Please input your ${formItem.name}!' }`);
+          } else if (rule === 'email') {
+            rules.push(`{ type: 'email', message: 'The input is not valid E-mail!' }`);
           }
         });
 
@@ -60,30 +66,30 @@ const transformFormField = (fieldValue, entries) => {
           entries.antdImports.add('Input');
           children.push({
             type: 'Input',
-            props: formItemProps,
+            props: formChildrenProps,
           });
         } else if (type === 'Button') {
           entries.antdImports.add('Button');
 
           if (onSubmit) {
-            formItemProps.htmlType = "submit";
+            formChildrenProps.htmlType = "submit";
           }
 
           children.push({
             type: 'Button',
-            props: formItemProps,
+            props: formChildrenProps,
           });
         } else if (type === 'Checkbox') {
           entries.antdImports.add('Checkbox');
 
           children.push({
             type: 'Checkbox',
-            props: formItemProps,
+            props: formChildrenProps,
           });
         } else if (!!type) {
           children.push({
             type: type,
-            props: formItemProps,
+            props: formChildrenProps,
           });
         }
 
@@ -135,9 +141,11 @@ const transformFormField = (fieldValue, entries) => {
         formItemChildren = formItemChildren.concat(children);
       })
 
+
       const formItemElement = {
         type: 'Form.Item',
         children: formItemChildren,
+        props: formItemProps,
       };
 
       formElement.children.push(formItemElement);

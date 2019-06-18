@@ -8,9 +8,7 @@ const config: IConfig =  {
     ['umi-plugin-react', {
       antd: true,
       dva: true,
-      dynamicImport: { webpackChunkName: true },
       title: 'ant-design-draft',
-      dll: true,
       
       routes: {
         exclude: [
