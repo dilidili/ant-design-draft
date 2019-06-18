@@ -161,21 +161,25 @@ const transformField = (fieldName, fieldValue, entries) => {
   }
 };
 
-const renderProps = (props = {}) => {
+const renderProps = (props = {}, entries, child) => {
   return Object.keys(props).reduce((r, k) => {
     const prop = props[k];
 
     if (typeof prop === 'string') {
-      return r + ` ${k}="${props[k]}"`
+      return r + ` ${k}="${props[k]}"`;
     } else if (prop && prop.type === 'refrence') {
-      return r + ` ${k}={${props[k].payload}}`
-    }
+      return r + ` ${k}={${props[k].payload}}`;
+    } else if (typeof prop === 'object') {
+      const propName = `${child.type[0].toLowerCase()}${child.type.slice(1)}${k[0].toUpperCase()}${k.slice(1)}Prop`;
+      entries.render.declareMap[JSON.stringify(prop, null, 2)] = propName;
+      return r + ` ${k}={${propName}}`;
+    } 
 
     return r;
   }, '')
 };
 
-const renderElements = (children = [], indentNums) => {
+const renderElements = (children = [], indentNums, entries) => {
   const indent = ' '.repeat(indentNums);
   let ret = [];
 
@@ -184,7 +188,7 @@ const renderElements = (children = [], indentNums) => {
       type,
     } = child;
 
-    const props = renderProps(child.props);
+    const props = renderProps(child.props, entries, child);
 
     if (type === 'custom') {
       const { start, end } = child.render(indent);
@@ -225,8 +229,14 @@ const generate = (entries) => {
   }
 
   if (entries.render.return && entries.render.return.length > 0) {
-    view.render.return = renderElements(entries.render.return, 6).join('\n');
+    view.render.return = renderElements(entries.render.return, 6, entries).join('\n');
   }
+
+  // transform delareMap to list format
+  view.render.declareMap = Object.keys(view.render.declareMap).reduce((r, k) => {
+    r.push(`const ${view.render.declareMap[k]} = ${k};`.split('\n').map(v => '    ' + v).join('\n'));
+    return r;
+  }, [])
 
   return Mustache.render(ReactComponentTpl, view);
 };
@@ -236,6 +246,7 @@ const transform = (schema = {}) => {
     antdImports: new Set(),
     handlers: [],
     render: {
+      declareMap: {},
       declares: [],
       return: [],
     },
