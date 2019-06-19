@@ -31,7 +31,9 @@ class HorizontalLoginForm extends React.Component {
           )}
         </Form.Item>
         <Form.Item>
-          <Button type="primary" children="Log in" htmlType="submit" />
+          <Button type="primary" htmlType="submit">
+            Log in
+          </Button>
         </Form.Item>
       </Form>
     );

@@ -1,7 +1,14 @@
 import React from 'react';
-import { Input, Form } from 'antd';
+import { Input, Cascader, AutoComplete, Col, Button, Row, Form } from 'antd';
 
 class RegistrationForm extends React.Component {
+
+  validateToNextPassword = (rule, value, callback) => {
+    const form = this.props.form;
+    console.warn('TODO: implement validateToNextPassword');
+    callback();
+  };
+
   render() {
     const { getFieldDecorator } = this.props.form;
     const formLabelColProp = {
@@ -28,6 +35,60 @@ class RegistrationForm extends React.Component {
           })(
             <Input />
           )}
+        </Form.Item>
+        <Form.Item label="Password">
+          {getFieldDecorator('password', {
+            rules: [{ required: true, message: 'Please input your password!' }, { validator: this.validateToNextPassword }],
+          })(
+            <Input.Password />
+          )}
+        </Form.Item>
+        <Form.Item label="Confirm Password">
+          {getFieldDecorator('confirm', {
+            rules: [{ required: true, message: 'Please input your confirm!' }],
+          })(
+            <Input.Password />
+          )}
+        </Form.Item>
+        <Form.Item label="Nickname">
+          {getFieldDecorator('nickname', {
+            rules: [{ required: true, message: 'Please input your nickname!' }],
+          })(
+            <Input />
+          )}
+        </Form.Item>
+        <Form.Item label="Habitual Residence">
+          {getFieldDecorator('residence', {
+            rules: [{ required: true, message: 'Please input your residence!' }],
+            initialValue: ["zhejiang","hangzhou","xihu"],
+          })(
+            <Cascader options={[]} />
+          )}
+        </Form.Item>
+        <Form.Item label="Website">
+          {getFieldDecorator('website', {
+            rules: [{ required: true, message: 'Please input your website!' }],
+          })(
+            <AutoComplete placeholder="website" dataSource={[]}>
+              <Input />
+            </AutoComplete>
+          )}
+        </Form.Item>
+        <Form.Item label="Captcha" extra="We must make sure that your are a human.">
+          <Row gutter={8}>
+            <Col span={12}>
+              {getFieldDecorator('captcha', {
+                rules: [{ required: true, message: 'Please input your captcha!' }],
+              })(
+                <Input />
+              )}
+            </Col>
+            <Col span={12}>
+              <Button>
+                Get captcha
+              </Button>
+            </Col>
+          </Row>
         </Form.Item>
       </Form>
     );

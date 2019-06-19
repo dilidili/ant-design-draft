@@ -7,6 +7,8 @@ const ReactComponentTpl = fs.readFileSync(path.join(__dirname, './templates/Reac
 const decodeLiteralPrimative = value => {
   if (typeof value === 'string') {
     return `'${value}'`;
+  } else if (Array.isArray(value)) {
+    return JSON.stringify(value);
   } else {
     return value;
   }
@@ -29,6 +31,7 @@ const transformFormField = (fieldValue, entries) => {
     items.forEach(formItem => {
       let formItemChildren = [];
       let formItemProps = {};
+      let formItemGutter;
 
       // support array as element of items
       let formItemList = formItem;
@@ -42,13 +45,21 @@ const transformFormField = (fieldValue, entries) => {
           onSubmit,
           name,
           label,
+          hasFeedback,
+          extra,
           valuePropName,
           initialValue,
+          span,
+          validators,
+          gutter,
           rules: formItemRules,
-          props: formChildrenProps,
+          props: formChildrenProps = {},
         } = formItem;
 
         if (label) formItemProps.label = label;
+        if (hasFeedback) formItemProps.hasFeedback = true;
+        if (extra) formItemProps.extra = extra;
+        if (gutter) formItemGutter = gutter;
   
         // field rules
         const rules = [];
@@ -60,39 +71,39 @@ const transformFormField = (fieldValue, entries) => {
           }
         });
 
+        (validators || []).forEach(validator => {
+          if (validator) {
+            rules.push(`{ validator: this.${validator} }`);
+            entries.handlers.push(`
+  ${validator} = (rule, value, callback) => {
+    const form = this.props.form;
+    console.warn('TODO: implement ${validator}');
+    callback();
+  };
+`)
+          }
+        });
+
         // field children
         let children = [];
-        if (type === 'Input') {
-          entries.antdImports.add('Input');
-          children.push({
-            type: 'Input',
-            props: formChildrenProps,
-          });
-        } else if (type === 'Button') {
-          entries.antdImports.add('Button');
-
+        if (type === 'Button') {
           if (onSubmit) {
             formChildrenProps.htmlType = "submit";
           }
+        } else if (type === 'Cascader') {
+          formChildrenProps.options = [];
+        }
+        
+        if (!!type) {
+          if (!~type.indexOf('.') && type.toLowerCase() !== type) {
+            entries.antdImports.add(type);
+          }
 
-          children.push({
-            type: 'Button',
-            props: formChildrenProps,
-          });
-        } else if (type === 'Checkbox') {
-          entries.antdImports.add('Checkbox');
-
-          children.push({
-            type: 'Checkbox',
-            props: formChildrenProps,
-          });
-        } else if (!!type) {
           children.push({
             type: type,
             props: formChildrenProps,
           });
         }
-
 
         // form submit
         if (onSubmit) {
@@ -138,15 +149,38 @@ const transformFormField = (fieldValue, entries) => {
           }]
         }
 
+        if (typeof span === 'number') {
+          entries.antdImports.add('Col');
+          children = [{
+            type: 'Col',
+            props: {
+              span,
+            },
+            children,
+          }]
+        }
+
         formItemChildren = formItemChildren.concat(children);
       })
 
 
-      const formItemElement = {
+      let formItemElement = {
         type: 'Form.Item',
         children: formItemChildren,
         props: formItemProps,
       };
+
+      // wrap with row layout
+      if (typeof formItemGutter === 'number') {
+        entries.antdImports.add('Row');
+        formItemElement.children = [{
+          type: 'Row',
+          props: {
+            gutter: formItemGutter,
+          },
+          children: formItemElement.children,
+        }]
+      }
 
       formElement.children.push(formItemElement);
     });
@@ -173,10 +207,17 @@ const renderProps = (props = {}, entries, child) => {
   return Object.keys(props).reduce((r, k) => {
     const prop = props[k];
 
+    // ignore children props
+    if (k === 'children') return r;
+
     if (typeof prop === 'string') {
       return r + ` ${k}="${props[k]}"`;
+    } else if (typeof prop === 'number') {
+      return r + ` ${k}={${props[k]}}`;
     } else if (prop && prop.type === 'refrence') {
       return r + ` ${k}={${props[k].payload}}`;
+    } else if (Array.isArray(prop)) {
+      return r + ` ${k}={${JSON.stringify(prop)}}`;
     } else if (typeof prop === 'object') {
       const propName = `${child.type[0].toLowerCase()}${child.type.slice(1)}${k[0].toUpperCase()}${k.slice(1)}Prop`;
       entries.render.declareMap[JSON.stringify(prop, null, 2)] = propName;
@@ -191,26 +232,32 @@ const renderElements = (children = [], indentNums, entries) => {
   const indent = ' '.repeat(indentNums);
   let ret = [];
 
-  children.forEach(child => {
-    const {
-      type,
-    } = child;
+  if (Array.isArray(children)) {
+    children.forEach(child => {
+      const {
+        type,
+      } = child;
 
-    const props = renderProps(child.props, entries, child);
+      child.props = child.props || {};
+      const props = renderProps(child.props, entries, child);
+      const nextLevelChildren = child.children || child.props.children;
 
-    if (type === 'custom') {
-      const { start, end } = child.render(indent);
-      ret.push(start); 
-      ret = ret.concat(renderElements(child.children, indentNums + 2));
-      ret.push(end); 
-    } else if (child.children && child.children.length > 0) {
-      ret.push(`${indent}<${type}${props}>`);
-      ret = ret.concat(renderElements(child.children, indentNums + 2));
-      ret.push(`${indent}</${type}>`);
-    } else {
-      ret.push(`${indent}<${type}${props} />`);
-    }
-  });
+      if (type === 'custom') {
+        const { start, end } = child.render(indent);
+        ret.push(start); 
+        ret = ret.concat(renderElements(nextLevelChildren, indentNums + 2));
+        ret.push(end); 
+      } else if (nextLevelChildren && nextLevelChildren.length > 0) {
+        ret.push(`${indent}<${type}${props}>`);
+        ret = ret.concat(renderElements(nextLevelChildren, indentNums + 2));
+        ret.push(`${indent}</${type}>`);
+      } else {
+        ret.push(`${indent}<${type}${props} />`);
+      }
+    });
+  } else if (typeof children === 'string') {
+    ret.push(`${indent}${children}`);
+  }
 
   return ret;
 };

@@ -281,9 +281,61 @@ const schema = {
     items: [{
       name: 'email',
       label: 'E-mail',
+      hasFeedback: true,
       type: 'Input',
       rules: ['required', 'email'],
-    }],
+    }, {
+      name: 'password',
+      label: 'Password',
+      hasFeedback: true,
+      type: 'Input.Password',
+      rules: ['required'],
+      validators: ['validateToNextPassword'],
+    }, {
+      name: 'confirm',
+      label: 'Confirm Password',
+      hasFeedback: true,
+      rules: ['required'],
+      validator: ['compareToFirstPassword'],
+      type: 'Input.Password',
+    }, {
+      name: 'nickname',
+      label: 'Nickname',
+      rules: ['required'],
+      type: 'Input',
+    }, {
+      name: 'residence',
+      label: 'Habitual Residence',
+      initialValue: ['zhejiang', 'hangzhou', 'xihu'],
+      rules: ['array', 'required'],
+      type: 'Cascader',
+    }, {
+      name: 'website',
+      label: 'Website',
+      rules: ['required'],
+      type: 'AutoComplete',
+      props: {
+        placeholder: "website",
+        dataSource: [],
+        children: [{
+          type: 'Input',
+        }]
+      }
+    }, [{
+      label: 'Captcha',
+      extra: "We must make sure that your are a human.",
+      gutter: 8,
+      name: 'captcha',
+      type: 'Input',
+      rules: ['required'],
+      span: 12,
+    }, {
+      type: 'Button',
+      span: 12,
+      props: {
+        children: 'Get captcha',
+      }
+    }]]
   },
 }
 

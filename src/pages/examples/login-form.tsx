@@ -36,11 +36,19 @@ class NormalLoginForm extends React.Component {
             valuePropName: 'checked',
             initialValue: true,
           })(
-            <Checkbox children="Remember me" />
+            <Checkbox>
+              Remember me
+            </Checkbox>
           )}
-          <a className="login-form-forgot" href="" children="Forgot password" />
-          <Button type="primary" className="login-form-button" children="Log in" htmlType="submit" />
-          <a children="register now!" href="" />
+          <a className="login-form-forgot" href="">
+            Forgot password
+          </a>
+          <Button type="primary" className="login-form-button" htmlType="submit">
+            Log in
+          </Button>
+          <a href="">
+            register now!
+          </a>
         </Form.Item>
       </Form>
     );
