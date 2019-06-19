@@ -270,6 +270,19 @@ const formItemLayout = {
   },
 };
 
+const tailFormItemLayout = {
+  wrapperCol: {
+    xs: {
+      span: 24,
+      offset: 0,
+    },
+    sm: {
+      span: 16,
+      offset: 8,
+    },
+  },
+};
+
 const schema = {
   componentType: 'RegistrationForm',
 
@@ -335,7 +348,22 @@ const schema = {
       props: {
         children: 'Get captcha',
       }
-    }]]
+    }], {
+      name: 'agreement',
+      type: 'Checkbox',
+      valuePropName: 'checked',
+      props: {
+        children: 'I have read the agreement',
+      },
+      ...tailFormItemLayout,
+    }, {
+      type: 'Button',
+      onSubmit: true,
+      props: {
+        children: 'Submit',
+      },
+      ...tailFormItemLayout,
+    }]
   },
 }
 

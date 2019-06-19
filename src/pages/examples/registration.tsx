@@ -1,5 +1,5 @@
 import React from 'react';
-import { Input, Cascader, AutoComplete, Col, Button, Row, Form } from 'antd';
+import { Input, Cascader, AutoComplete, Col, Button, Row, Checkbox, Form } from 'antd';
 
 class RegistrationForm extends React.Component {
 
@@ -7,6 +7,16 @@ class RegistrationForm extends React.Component {
     const form = this.props.form;
     console.warn('TODO: implement validateToNextPassword');
     callback();
+  };
+
+
+  handleSubmit = e => {
+    e.preventDefault();
+    this.props.form.validateFields((err, values) => {
+      if (!err) {
+        console.log('Received values of form: ', values);
+      }
+    });
   };
 
   render() {
@@ -27,8 +37,18 @@ class RegistrationForm extends React.Component {
         "span": 16
       }
     };
+    const formItemWrapperColProp = {
+      "xs": {
+        "span": 24,
+        "offset": 0
+      },
+      "sm": {
+        "span": 16,
+        "offset": 8
+      }
+    };
     return (
-      <Form className="login-form" labelCol={formLabelColProp} wrapperCol={formWrapperColProp}>
+      <Form className="login-form" labelCol={formLabelColProp} wrapperCol={formWrapperColProp} onSubmit={this.handleSubmit}>
         <Form.Item label="E-mail">
           {getFieldDecorator('email', {
             rules: [{ required: true, message: 'Please input your email!' }, { type: 'email', message: 'The input is not valid E-mail!' }],
@@ -89,6 +109,21 @@ class RegistrationForm extends React.Component {
               </Button>
             </Col>
           </Row>
+        </Form.Item>
+        <Form.Item wrapperCol={formItemWrapperColProp}>
+          {getFieldDecorator('agreement', {
+            rules: [],
+            valuePropName: 'checked',
+          })(
+            <Checkbox>
+              I have read the agreement
+            </Checkbox>
+          )}
+        </Form.Item>
+        <Form.Item wrapperCol={formItemWrapperColProp}>
+          <Button htmlType="submit">
+            Submit
+          </Button>
         </Form.Item>
       </Form>
     );

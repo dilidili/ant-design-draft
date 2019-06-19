@@ -48,6 +48,7 @@ const transformFormField = (fieldValue, entries) => {
           hasFeedback,
           extra,
           valuePropName,
+          wrapperCol,
           initialValue,
           span,
           validators,
@@ -59,6 +60,7 @@ const transformFormField = (fieldValue, entries) => {
         if (label) formItemProps.label = label;
         if (hasFeedback) formItemProps.hasFeedback = true;
         if (extra) formItemProps.extra = extra;
+        if (wrapperCol) formItemProps.wrapperCol = wrapperCol;
         if (gutter) formItemGutter = gutter;
   
         // field rules
@@ -219,7 +221,8 @@ const renderProps = (props = {}, entries, child) => {
     } else if (Array.isArray(prop)) {
       return r + ` ${k}={${JSON.stringify(prop)}}`;
     } else if (typeof prop === 'object') {
-      const propName = `${child.type[0].toLowerCase()}${child.type.slice(1)}${k[0].toUpperCase()}${k.slice(1)}Prop`;
+      const typeName = child.type.replace('.', '');
+      const propName = `${typeName[0].toLowerCase()}${typeName.slice(1)}${k[0].toUpperCase()}${k.slice(1)}Prop`;
       entries.render.declareMap[JSON.stringify(prop, null, 2)] = propName;
       return r + ` ${k}={${propName}}`;
     } 
@@ -245,11 +248,11 @@ const renderElements = (children = [], indentNums, entries) => {
       if (type === 'custom') {
         const { start, end } = child.render(indent);
         ret.push(start); 
-        ret = ret.concat(renderElements(nextLevelChildren, indentNums + 2));
+        ret = ret.concat(renderElements(nextLevelChildren, indentNums + 2, entries));
         ret.push(end); 
       } else if (nextLevelChildren && nextLevelChildren.length > 0) {
         ret.push(`${indent}<${type}${props}>`);
-        ret = ret.concat(renderElements(nextLevelChildren, indentNums + 2));
+        ret = ret.concat(renderElements(nextLevelChildren, indentNums + 2, entries));
         ret.push(`${indent}</${type}>`);
       } else {
         ret.push(`${indent}<${type}${props} />`);
