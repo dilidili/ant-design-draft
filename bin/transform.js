@@ -276,7 +276,7 @@ const renderProps = (child, renderEntries) => {
 
     if (typeof prop === 'string') {
       return r + ` ${k}="${props[k]}"`;
-    } else if (typeof prop === 'number') {
+    } else if (typeof prop === 'number' || typeof prop === 'boolean') {
       return r + ` ${k}={${props[k]}}`;
     } else if (prop && prop.type === 'refrence') {
       return r + ` ${k}={${props[k].payload}}`;
