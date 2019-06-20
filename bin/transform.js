@@ -2,8 +2,6 @@ const Mustache = require('mustache');
 const fs = require('fs');
 const path = require('path');
 
-const ReactComponentTpl = fs.readFileSync(path.join(__dirname, './templates/ReactComponent.mustache'), 'utf8');
-
 const decodeLiteralPrimative = value => {
   if (typeof value === 'string') {
     return `'${value}'`;
@@ -88,15 +86,32 @@ const transformFormField = (fieldValue, entries) => {
 
         // field children
         let children = [];
+        let mounted = false;
         if (type === 'Button') {
           if (onSubmit) {
             formChildrenProps.htmlType = "submit";
           }
         } else if (type === 'Cascader') {
           formChildrenProps.options = [];
+        } else if (type === 'Radio.Group') {
+          entries.antdImports.add('Radio');
+
+          children.push({
+            type: 'Radio.Group',
+            props: {},
+            children: (formItem.options || []).map(option => ({
+              type: 'Radio',
+              props: {
+                value: option.value,
+                children: option.text,
+              },
+            })),
+          });
+
+          mounted = true;
         }
         
-        if (!!type) {
+        if (!!type && !mounted) {
           if (!~type.indexOf('.') && type.toLowerCase() !== type) {
             entries.antdImports.add(type);
           }
@@ -189,14 +204,59 @@ const transformFormField = (fieldValue, entries) => {
   }
 
   entries.antdImports.add('Form');
-  entries.render.return.push(formElement);
-  entries.render.declares.push('    const { getFieldDecorator } = this.props.form;');
+  entries.renderForm.return.push(formElement);
+  entries.renderForm.declares.push('    const { getFieldDecorator } = this.props.form;');
+  entries.template = fs.readFileSync(path.join(__dirname, './templates/Form.mustache'), 'utf8');
+}
+
+const transformFormInModalField = (fieldValue, entries) => {
+  transformFormField(fieldValue.form, entries);
+
+  const modalElement = {
+    type: 'Modal',
+    props: {
+      visible: {
+        type: 'refrence',
+        payload: 'visible',
+      },
+      onCancel: {
+        type: 'refrence',
+        payload: 'onCancel',
+      },
+      onOk: {
+        type: 'refrence',
+        payload: 'onCreate',
+      },
+      title: fieldValue.title || 'title',
+      okText: fieldValue.okText || 'okText',
+    },
+    children: [{
+      type: 'custom',
+      render: (indent) => {
+        return {
+          start: (
+            indent + '{this.renderForm()}'
+          ),
+        }
+      },
+    }],
+  };
+
+  entries.antdImports.add('Button');
+  entries.antdImports.add('Modal');
+  entries.render.buttonLabel = fieldValue.buttonLabel || 'Button';
+  entries.render.declares.push('    const { visible, onCancel, onCreate, form } = this.props;');
+  entries.render.return.push(modalElement);
+  entries.template = fs.readFileSync(path.join(__dirname, './templates/FormInModal.mustache'), 'utf8');
 }
 
 const transformField = (fieldName, fieldValue, entries) => {
   switch(fieldName) {
     case 'form':
       transformFormField(fieldValue, entries);
+      break;
+    case 'formInModal':
+      transformFormInModalField(fieldValue, entries);
       break;
     case 'componentType':
       entries.componentType = fieldValue || '';
@@ -205,7 +265,9 @@ const transformField = (fieldName, fieldValue, entries) => {
   }
 };
 
-const renderProps = (props = {}, entries, child) => {
+const renderProps = (child, renderEntries) => {
+  const props = child.props || {};
+
   return Object.keys(props).reduce((r, k) => {
     const prop = props[k];
 
@@ -223,7 +285,7 @@ const renderProps = (props = {}, entries, child) => {
     } else if (typeof prop === 'object') {
       const typeName = child.type.replace('.', '');
       const propName = `${typeName[0].toLowerCase()}${typeName.slice(1)}${k[0].toUpperCase()}${k.slice(1)}Prop`;
-      entries.render.declareMap[JSON.stringify(prop, null, 2)] = propName;
+      renderEntries.declareMap[JSON.stringify(prop, null, 2)] = propName;
       return r + ` ${k}={${propName}}`;
     } 
 
@@ -231,7 +293,7 @@ const renderProps = (props = {}, entries, child) => {
   }, '')
 };
 
-const renderElements = (children = [], indentNums, entries) => {
+const renderElements = (children = [], indentNums, entries, renderEntries) => {
   const indent = ' '.repeat(indentNums);
   let ret = [];
 
@@ -242,17 +304,21 @@ const renderElements = (children = [], indentNums, entries) => {
       } = child;
 
       child.props = child.props || {};
-      const props = renderProps(child.props, entries, child);
+      const props = renderProps(child, renderEntries);
       const nextLevelChildren = child.children || child.props.children;
 
       if (type === 'custom') {
         const { start, end } = child.render(indent);
         ret.push(start); 
-        ret = ret.concat(renderElements(nextLevelChildren, indentNums + 2, entries));
-        ret.push(end); 
+        if (nextLevelChildren) {
+          ret = ret.concat(renderElements(nextLevelChildren, indentNums + 2, entries, renderEntries));
+        }
+        if (end) {
+          ret.push(end); 
+        }
       } else if (nextLevelChildren && nextLevelChildren.length > 0) {
         ret.push(`${indent}<${type}${props}>`);
-        ret = ret.concat(renderElements(nextLevelChildren, indentNums + 2, entries));
+        ret = ret.concat(renderElements(nextLevelChildren, indentNums + 2, entries, renderEntries));
         ret.push(`${indent}</${type}>`);
       } else {
         ret.push(`${indent}<${type}${props} />`);
@@ -277,6 +343,10 @@ const generate = (entries) => {
     render: {
       ...entries.render,
       return: '',
+    },
+    renderForm: {
+      ...entries.renderForm,
+      return: '',
     }
   };
 
@@ -287,16 +357,23 @@ const generate = (entries) => {
   }
 
   if (entries.render.return && entries.render.return.length > 0) {
-    view.render.return = renderElements(entries.render.return, 6, entries).join('\n');
+    view.render.return = renderElements(entries.render.return, 6, entries, entries.render).join('\n');
+  }
+  if (entries.renderForm.return && entries.renderForm.return.length > 0) {
+    view.renderForm.return = renderElements(entries.renderForm.return, 6, entries, entries.renderForm).join('\n');
   }
 
   // transform delareMap to list format
   view.render.declareMap = Object.keys(view.render.declareMap).reduce((r, k) => {
     r.push(`const ${view.render.declareMap[k]} = ${k};`.split('\n').map(v => '    ' + v).join('\n'));
     return r;
-  }, [])
+  }, []);
+  view.renderForm.declareMap = Object.keys(view.renderForm.declareMap).reduce((r, k) => {
+    r.push(`const ${view.renderForm.declareMap[k]} = ${k};`.split('\n').map(v => '    ' + v).join('\n'));
+    return r;
+  }, []);
 
-  return Mustache.render(ReactComponentTpl, view);
+  return Mustache.render(entries.template, view);
 };
 
 const transform = (schema = {}) => {
@@ -304,6 +381,11 @@ const transform = (schema = {}) => {
     antdImports: new Set(),
     handlers: [],
     render: {
+      declareMap: {},
+      declares: [],
+      return: [],
+    },
+    renderForm: {
       declareMap: {},
       declares: [],
       return: [],
