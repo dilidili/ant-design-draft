@@ -2,6 +2,7 @@ import React from 'react';
 import { Icon } from 'antd';
 import styles from './index.less';
 import ConfigEditor from './ConfigEditor';
+import Preview from './Preview';
 
 class BuildPage extends React.Component {
   renderHeader() {
@@ -27,6 +28,7 @@ class BuildPage extends React.Component {
         {/* preview */}
         <div className={styles.contentBlock}>
           <div className={styles.contentHeader}><div/><p>Preview</p><div/></div>
+          <Preview />
         </div>
 
         {/* code */}
