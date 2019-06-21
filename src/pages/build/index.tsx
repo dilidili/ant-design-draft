@@ -4,7 +4,6 @@ import styles from './index.less';
 import ConfigEditor from './ConfigEditor';
 
 class BuildPage extends React.Component {
-
   renderHeader() {
     return (
       <div className={styles.header}>

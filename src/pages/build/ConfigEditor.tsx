@@ -1,25 +1,54 @@
 import React from 'react';
 import styles from './ConfigEditor.less';
-import { Editor, EditorState } from 'draft-js';
+import createCodeEditorPlugin from '@/utils/draft-js-code-editor-plugin';
+import { EditorState } from 'draft-js';
+import { connect } from 'dva';
+import { Dispatch } from 'redux';
+import { ConnectState } from '@/models/connect';
+import Prism from 'prismjs';
+import Editor from 'draft-js-plugins-editor';
+import createPrismPlugin from 'draft-js-prism-plugin';
 
-class ConfigEditor extends React.Component {
-  constructor(props) {
+interface ConfigEdtiorProps {
+  editorState: EditorState,
+  dispatch: Dispatch,
+}
+
+class ConfigEditor extends React.Component<ConfigEdtiorProps> {
+  constructor(props: ConfigEdtiorProps) {
     super(props);
+
     this.state = {
-      editorState: EditorState.createEmpty()
+      editorState: EditorState.createEmpty(),
+      plugins: [
+        createPrismPlugin({
+          prism: Prism
+        }),
+        createCodeEditorPlugin()
+      ],
     };
   }
 
-  onChange = (editorState) => {
-    this.setState({
-      editorState,
-    })
+  onChange = (editorState: EditorState) => {
+    const { dispatch } = this.props;
+
+    dispatch({
+      type: 'code/changeEditorState',
+      payload: editorState,
+    });
   }
 
   renderEditor() {
+    const { plugins }: any = this.state;
+    const { editorState } = this.props;
+
     return (
       <div className={styles.editor}>
-      <Editor editorState={this.state.editorState} onChange={this.onChange} />
+        <Editor
+          editorState={editorState}
+          onChange={this.onChange}
+          plugins={plugins}
+        />
       </div>
     )
   }
@@ -44,4 +73,8 @@ class ConfigEditor extends React.Component {
   }
 }
 
-export default ConfigEditor;
+export default connect(({ code }: ConnectState) => {
+  return {
+    editorState: code.edtiorState,
+  }
+})(ConfigEditor);
