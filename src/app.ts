@@ -1,3 +1,6 @@
+import { createLogger } from 'redux-logger';
+
+const logger = process.env.NODE_ENV !== 'production' ? createLogger() : null;
 
 export const dva = {
   config: {
@@ -5,5 +8,6 @@ export const dva = {
       err.preventDefault();
       console.error(err.message);
     },
+    onAction: [logger],
   },
 };

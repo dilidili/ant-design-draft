@@ -1,13 +1,13 @@
 import React from 'react';
 import styles from './ConfigEditor.less';
 import createCodeEditorPlugin from '@/utils/draft-js-code-editor-plugin';
+import createPrismPlugin from '@/utils/draft-js-prism-plugin';
 import { EditorState } from 'draft-js';
 import { connect } from 'dva';
 import { Dispatch } from 'redux';
 import { ConnectState } from '@/models/connect';
 import Prism from 'prismjs';
 import Editor from 'draft-js-plugins-editor';
-import createPrismPlugin from 'draft-js-prism-plugin';
 
 interface ConfigEdtiorProps {
   editorState: EditorState,
