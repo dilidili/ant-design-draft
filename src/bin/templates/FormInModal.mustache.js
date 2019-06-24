@@ -1,4 +1,4 @@
-import React from 'react';
+module.exports = `import React from 'react';
 {{#antdImports}}
 {{{antdImports}}}
 {{/antdImports}}
@@ -83,4 +83,4 @@ class {{{componentType}}}Button extends React.Component {
   }
 }
 
-export default {{{componentType}}}Button;
+export default {{{componentType}}}Button;`

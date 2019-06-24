@@ -49,21 +49,21 @@ class RegistrationForm extends React.Component {
     };
     return (
       <Form className="login-form" labelCol={formLabelColProp} wrapperCol={formWrapperColProp} onSubmit={this.handleSubmit}>
-        <Form.Item label="E-mail">
+        <Form.Item label="E-mail" hasFeedback={true}>
           {getFieldDecorator('email', {
             rules: [{ required: true, message: 'Please input your email!' }, { type: 'email', message: 'The input is not valid E-mail!' }],
           })(
             <Input />
           )}
         </Form.Item>
-        <Form.Item label="Password">
+        <Form.Item label="Password" hasFeedback={true}>
           {getFieldDecorator('password', {
             rules: [{ required: true, message: 'Please input your password!' }, { validator: this.validateToNextPassword }],
           })(
             <Input.Password />
           )}
         </Form.Item>
-        <Form.Item label="Confirm Password">
+        <Form.Item label="Confirm Password" hasFeedback={true}>
           {getFieldDecorator('confirm', {
             rules: [{ required: true, message: 'Please input your confirm!' }],
           })(

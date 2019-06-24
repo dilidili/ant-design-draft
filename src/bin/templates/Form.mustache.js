@@ -1,4 +1,4 @@
-import React from 'react';
+module.exports = `import React from 'react';
 {{#antdImports}}
 {{{antdImports}}}
 {{/antdImports}}
@@ -21,4 +21,4 @@ class {{{componentType}}} extends React.Component {
 }
 
 const Wrapped{{{componentType}}} = Form.create({ name: '{{{componentType}}}' })({{{componentType}}});
-export default Wrapped{{{componentType}}};
+export default Wrapped{{{componentType}}};`

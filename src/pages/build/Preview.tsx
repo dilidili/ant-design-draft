@@ -1,22 +1,23 @@
 import React from 'react';
-import { transform } from '@babel/standalone';
+import { connect } from 'dva';
+import { ConnectState } from '@/models/connect.d';
 
-const code = transform(`
-  class Test extends React.Component {
-    render() {
-      return <div>Test</div>
-    }
-  }
-`, {
-  presets: ['es2015', 'react'],
-}).code;
+type PreviewProps = {
+  previewCode: string,
+}
 
-class Preview extends React.Component {
+class Preview extends React.Component<PreviewProps> {
   render() {
+    const { previewCode } = this.props;
+
     return (
-      <div>{code}</div>
+      <div>{previewCode}</div>
     )
   }
 }
 
-export default Preview;
+export default connect((state: ConnectState) => {
+  return {
+    previewCode: state.code.previewCode,
+  }
+})(Preview);

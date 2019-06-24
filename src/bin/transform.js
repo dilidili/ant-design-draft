@@ -1,6 +1,4 @@
 const Mustache = require('mustache');
-const fs = require('fs');
-const path = require('path');
 
 const decodeLiteralPrimative = value => {
   if (typeof value === 'string') {
@@ -206,7 +204,7 @@ const transformFormField = (fieldValue, entries) => {
   entries.antdImports.add('Form');
   entries.renderForm.return.push(formElement);
   entries.renderForm.declares.push('    const { getFieldDecorator } = this.props.form;');
-  entries.template = fs.readFileSync(path.join(__dirname, './templates/Form.mustache'), 'utf8');
+  entries.template = require('./templates/Form.mustache.js');
 }
 
 const transformFormInModalField = (fieldValue, entries) => {
@@ -247,7 +245,7 @@ const transformFormInModalField = (fieldValue, entries) => {
   entries.render.buttonLabel = fieldValue.buttonLabel || 'Button';
   entries.render.declares.push('    const { visible, onCancel, onCreate, form } = this.props;');
   entries.render.return.push(modalElement);
-  entries.template = fs.readFileSync(path.join(__dirname, './templates/FormInModal.mustache'), 'utf8');
+  entries.template = require('./templates/FormInModal.mustache.js');
 }
 
 const transformField = (fieldName, fieldValue, entries) => {

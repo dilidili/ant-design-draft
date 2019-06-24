@@ -9,6 +9,7 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
+    "@babel/plugin-proposal-class-properties": "^7.4.4",
     "@babel/standalone": "^7.4.5",
     "@types/draft-js": "^0.10.32",
     "antd": "^3.19.2",
