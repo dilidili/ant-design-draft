@@ -2,6 +2,9 @@ import React from 'react';
 import { connect } from 'dva';
 import { ConnectState } from '@/models/connect.d';
 
+(window as any).React = React;
+(window as any).AntD = require('antd');
+
 type PreviewProps = {
   previewCode: string,
 }
@@ -9,10 +12,17 @@ type PreviewProps = {
 class Preview extends React.Component<PreviewProps> {
   render() {
     const { previewCode } = this.props;
+    const Component = eval(previewCode);
 
-    return (
-      <div>{previewCode}</div>
-    )
+    if (Component) {
+      return (
+        <div>
+          <Component />
+        </div>
+      );
+    } else {
+      return null;
+    }
   }
 }
 

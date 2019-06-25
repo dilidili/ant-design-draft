@@ -157,6 +157,6 @@ describe('Transform: horizontal login form', () => {
     const content = transformSchema(schema);
 
     expect(content).toEqual(output);
-    fs.writeFileSync(path.join(__dirname, '../../src/pages/examples/horizontal-login-form.tsx'), content, 'utf8');
+    fs.writeFileSync(path.join(__dirname, '../../pages/examples/horizontal-login-form.tsx'), content, 'utf8');
   });
 });

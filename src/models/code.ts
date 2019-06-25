@@ -52,7 +52,7 @@ const Model: ModelType = {
                 presets: ['react'],
               }).code + '; schema';
 
-              const code = transform(transformSchema(eval(configCode)), {
+              const code = transform(transformSchema(eval(configCode), { env: 'browser' }), {
                 presets: [
                   'es2015',
                   'react',

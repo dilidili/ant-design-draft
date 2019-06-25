@@ -172,6 +172,6 @@ describe('Transform: time related form', () => {
     const content = transformSchema(schema);
 
     // expect(content).toEqual(output);
-    fs.writeFileSync(path.join(__dirname, '../../src/pages/examples/time-related-form.tsx'), content, 'utf8');
+    fs.writeFileSync(path.join(__dirname, '../../pages/examples/time-related-form.tsx'), content, 'utf8');
   });
 });

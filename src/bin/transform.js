@@ -10,7 +10,7 @@ const decodeLiteralPrimative = value => {
   }
 };
 
-const transformFormField = (fieldValue, entries) => {
+const transformFormField = (fieldValue, entries, config = {}) => {
   const {
     items,
     props: formProps = {},
@@ -204,10 +204,15 @@ const transformFormField = (fieldValue, entries) => {
   entries.antdImports.add('Form');
   entries.renderForm.return.push(formElement);
   entries.renderForm.declares.push('    const { getFieldDecorator } = this.props.form;');
-  entries.template = require('./templates/Form.mustache.js');
+
+  if (config.env === 'browser') {
+    entries.template = require('./templates/Form.browser.mustache.js');
+  } else {
+    entries.template = require('./templates/Form.mustache.js');
+  }
 }
 
-const transformFormInModalField = (fieldValue, entries) => {
+const transformFormInModalField = (fieldValue, entries, config = {}) => {
   transformFormField(fieldValue.form, entries);
 
   const modalElement = {
@@ -245,16 +250,21 @@ const transformFormInModalField = (fieldValue, entries) => {
   entries.render.buttonLabel = fieldValue.buttonLabel || 'Button';
   entries.render.declares.push('    const { visible, onCancel, onCreate, form } = this.props;');
   entries.render.return.push(modalElement);
-  entries.template = require('./templates/FormInModal.mustache.js');
+
+  if (config.env === 'browser') {
+    entries.template = require('./templates/FormInModal.browser.mustache.js');
+  } else {
+    entries.template = require('./templates/FormInModal.mustache.js');
+  }
 }
 
-const transformField = (fieldName, fieldValue, entries) => {
+const transformField = (fieldName, fieldValue, entries, config) => {
   switch(fieldName) {
     case 'form':
-      transformFormField(fieldValue, entries);
+      transformFormField(fieldValue, entries, config);
       break;
     case 'formInModal':
-      transformFormInModalField(fieldValue, entries);
+      transformFormInModalField(fieldValue, entries, config);
       break;
     case 'componentType':
       entries.componentType = fieldValue || '';
@@ -329,7 +339,7 @@ const renderElements = (children = [], indentNums, entries, renderEntries) => {
   return ret;
 };
 
-const generate = (entries) => {
+const generate = (entries, config = {}) => {
   const {
     antdImports,
     handlers,
@@ -349,7 +359,11 @@ const generate = (entries) => {
   };
 
   if (antdImports && antdImports.size) {
-    view.antdImports = `import { ${[...antdImports].join(', ')} } from 'antd';`
+    if (config.env === 'browser') {
+      view.antdImports = `const { ${[...antdImports].join(', ')} } = window.AntD;`
+    } else {
+      view.antdImports = `import { ${[...antdImports].join(', ')} } from 'antd';`
+    }
   } else {
     view.antdImports = null;
   }
@@ -374,7 +388,7 @@ const generate = (entries) => {
   return Mustache.render(entries.template, view);
 };
 
-const transform = (schema = {}) => {
+const transform = (schema = {}, config = {}) => {
   const entries = {
     antdImports: new Set(),
     handlers: [],
@@ -391,11 +405,11 @@ const transform = (schema = {}) => {
   };
 
   Object.keys(schema).forEach(key => {
-    transformField(key, schema[key], entries);
+    transformField(key, schema[key], entries, config);
   });
 
   // generate
-  const content = generate(entries);
+  const content = generate(entries, config);
 
   return content;
 }
