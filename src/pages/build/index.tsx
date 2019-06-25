@@ -3,6 +3,7 @@ import { Icon } from 'antd';
 import styles from './index.less';
 import ConfigEditor from './ConfigEditor';
 import Preview from './Preview';
+import CodeEditor from '@/pages/build/CodeEditor';
 
 class BuildPage extends React.Component {
   renderHeader() {
@@ -34,6 +35,7 @@ class BuildPage extends React.Component {
         {/* code */}
         <div className={styles.contentBlock}>
           <div className={styles.contentHeader}><div/><p>Code</p><div/></div>
+          <CodeEditor />
         </div>
       </div>
     )

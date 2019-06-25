@@ -1,4 +1,5 @@
 import PrismDecorator from 'draft-js-prism';
+import 'prismjs/themes/prism.css';
 
 type Options = {
   prism: Object,

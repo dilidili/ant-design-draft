@@ -1,0 +1,64 @@
+.container {
+  box-shadow: rgba(0, 0, 0, 0.12) 0px 20px 50px 0px;
+  background: rgb(255, 255, 255);
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgb(238, 238, 238);
+  border-radius: 5px;
+  min-height: calc(100% - 120px);
+  margin: auto auto 38px;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  width: 100%;
+  height: 36px;
+  margin: 0px auto -2px;
+  flex-shrink: 0;
+
+  .icons {
+    display: inline-block;
+    padding-top: 10px;
+    padding-left: 15px;
+    overflow: auto;
+
+    & > span {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      margin-right: 10px;
+      border-radius: 50%;
+    }
+
+    .close {
+      background-color: rgb(255, 95, 86);
+      left: 13px;
+    }
+
+    .minimize {
+      background-color: rgb(255, 189, 46);
+      left: 33px;
+    }
+
+    .fullScreen {
+      background-color: rgb(39, 201, 63);
+      left: 53px;
+    }
+  }
+
+  .title {
+    color: rgb(0, 0, 0);
+    font-size: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    text-align: center;
+    margin-top: -25px;
+    overflow: auto;
+  }
+}
+
+.editor {
+  padding: 10px 15px;
+  overflow: auto;
+  height: 100%;
+}

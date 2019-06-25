@@ -1,6 +1,4 @@
-import { RichUtils } from 'draft-js';
 import CodeUtils from './draft-js-code';
-import "prismjs/themes/prism.css";
 
 type Options = {};
 

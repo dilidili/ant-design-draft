@@ -1,6 +1,7 @@
 import React from 'react';
 import { connect } from 'dva';
 import { ConnectState } from '@/models/connect.d';
+import styles from './Preview.less';
 
 (window as any).React = React;
 (window as any).AntD = require('antd');
@@ -16,7 +17,7 @@ class Preview extends React.Component<PreviewProps> {
 
     if (Component) {
       return (
-        <div>
+        <div className={styles.container}>
           <Component />
         </div>
       );

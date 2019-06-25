@@ -1,5 +1,4 @@
-import { EditorState } from 'draft-js';
-import { convertToRaw, convertFromRaw } from 'draft-js';
+import { EditorState, convertToRaw, convertFromRaw, ContentState } from 'draft-js';
 import { transform } from '@babel/standalone';
 import transformSchema from '@/bin/transform';
 import { Effect, EffectWithType, Reducer } from './connect.d';
@@ -10,6 +9,7 @@ const delay = (ms: number, val: [any]) => new Promise(res => setTimeout(() => re
 
 export interface CodeModelState {
   edtiorState: EditorState,
+  generatedCode: EditorState,
   previewCode: string,
 }
 
@@ -21,7 +21,9 @@ export interface ModelType {
   };
   reducers: {
     changeEditorState: Reducer<CodeModelState>;
+    changeCodeEditorState: Reducer<CodeModelState>;
     updatePreviewCode: Reducer<CodeModelState>;
+    updateGeneratedCode: Reducer<CodeModelState>;
   };
 }
 
@@ -30,6 +32,7 @@ const Model: ModelType = {
 
   state: {
     edtiorState: EditorState.createWithContent(convertFromRaw(JSON.parse(demoRawContent))),
+    generatedCode: EditorState.createEmpty(),
     previewCode: '',
   },
 
@@ -52,6 +55,7 @@ const Model: ModelType = {
                 presets: ['react'],
               }).code + '; schema';
 
+              // preview code
               const code = transform(transformSchema(eval(configCode), { env: 'browser' }), {
                 presets: [
                   'es2015',
@@ -66,6 +70,14 @@ const Model: ModelType = {
                 type: 'updatePreviewCode',
                 payload: code,
               });
+
+              // generated code
+              const generatedCode = transformSchema(eval(configCode));
+              yield put({
+                type: 'updateGeneratedCode',
+                payload: generatedCode,
+              });
+
             } catch(err) {
               console.error(err);
             }
@@ -89,10 +101,23 @@ const Model: ModelType = {
         edtiorState: payload,
       };
     },
+    changeCodeEditorState(state: CodeModelState, { payload }): CodeModelState {
+      // console.log(JSON.stringify(convertToRaw(payload.getCurrentContent())));
+      return {
+        ...state,
+        generatedCode: payload,
+      };
+    },
     updatePreviewCode(state: CodeModelState, { payload }): CodeModelState {
       return {
         ...state,
         previewCode: payload,
+      }
+    },
+    updateGeneratedCode(state: CodeModelState, { payload }): CodeModelState {
+      return {
+        ...state,
+        generatedCode: payload ? EditorState.createWithContent(ContentState.createFromText(payload)) : EditorState.createEmpty(),
       }
     },
   },

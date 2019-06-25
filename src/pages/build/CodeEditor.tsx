@@ -1,20 +1,22 @@
 import React from 'react';
-import styles from './ConfigEditor.less';
+import styles from './CodeEditor.less';
 import createCodeEditorPlugin from '@/utils/draft-js-code-editor-plugin';
 import createPrismPlugin from '@/utils/draft-js-prism-plugin';
-import { EditorState } from 'draft-js';
+import { EditorState, ContentState } from 'draft-js';
 import { connect } from 'dva';
-import { Dispatch } from 'redux';
 import { ConnectState } from '@/models/connect';
 import Prism from 'prismjs';
 import Editor from 'draft-js-plugins-editor';
+import { Dispatch } from 'redux';
 
 interface ConfigEdtiorProps {
-  editorState: EditorState,
+  generatedCode: string,
   dispatch: Dispatch,
 }
 
-class ConfigEditor extends React.Component<ConfigEdtiorProps> {
+const noop = () => {};
+
+class CodeEditor extends React.Component<ConfigEdtiorProps> {
   constructor(props: ConfigEdtiorProps) {
     super(props);
 
@@ -23,7 +25,7 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps> {
         createPrismPlugin({
           prism: Prism
         }),
-        createCodeEditorPlugin()
+        createCodeEditorPlugin(),
       ],
     };
   }
@@ -32,21 +34,22 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps> {
     const { dispatch } = this.props;
 
     dispatch({
-      type: 'code/changeEditorState',
+      type: 'code/changeCodeEditorState',
       payload: editorState,
     });
   }
 
   renderEditor() {
     const { plugins }: any = this.state;
-    const { editorState } = this.props;
+    const { generatedCode } = this.props;
 
     return (
       <div className={styles.editor}>
         <Editor
-          editorState={editorState}
-          onChange={this.onChange}
+          editorState={generatedCode}
           plugins={plugins}
+          onChange={this.onChange}
+          readOnly={true}
         />
       </div>
     )
@@ -62,7 +65,7 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps> {
             <span className={styles.minimize} />
             <span className={styles.fullScreen} />
           </div>
-          <div className={styles.title}>Config</div>
+          <div className={styles.title}>Generated code</div>
         </div>
 
         {/* editor */}
@@ -74,6 +77,6 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps> {
 
 export default connect(({ code }: ConnectState) => {
   return {
-    editorState: code.edtiorState,
+    generatedCode: code.generatedCode,
   }
-})(ConfigEditor);
+})(CodeEditor);
