@@ -197,7 +197,7 @@ class CollectionCreateFormButton extends React.Component {
 export default CollectionCreateFormButton;`;
 
 const schema = {
-  componentType: 'CollectionCreateForm',
+  name: 'CollectionCreateForm',
 
   formInModal: {
     form: {

@@ -16,6 +16,7 @@
   height: 36px;
   margin: 0px auto -2px;
   flex-shrink: 0;
+  position: relative;
 
   .icons {
     display: inline-block;
@@ -61,4 +62,16 @@
   padding: 10px 15px;
   overflow: auto;
   height: 100%;
+}
+
+.resetButton {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  cursor: pointer;
+  color: #666;
+
+  &:hover {
+    color: black;
+  }
 }

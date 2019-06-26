@@ -107,7 +107,7 @@ const formItemLayout = {
 };
 
 const schema = {
-  componentType: 'TimeRelatedForm',
+  name: 'TimeRelatedForm',
 
   form: {
     items: [{

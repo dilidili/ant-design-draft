@@ -266,7 +266,7 @@ const transformField = (fieldName, fieldValue, entries, config) => {
     case 'formInModal':
       transformFormInModalField(fieldValue, entries, config);
       break;
-    case 'componentType':
+    case 'name':
       entries.componentType = fieldValue || '';
       break;
     default:

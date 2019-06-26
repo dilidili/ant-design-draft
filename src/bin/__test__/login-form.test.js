@@ -122,7 +122,7 @@ const WrappedNormalLoginForm = Form.create({ name: 'NormalLoginForm' })(NormalLo
 export default WrappedNormalLoginForm;`
 
 const schema = {
-  componentType: 'NormalLoginForm',
+  name: 'NormalLoginForm',
 
   form: {
     props: {

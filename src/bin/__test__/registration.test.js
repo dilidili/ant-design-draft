@@ -417,7 +417,7 @@ const tailFormItemLayout = {
 };
 
 const schema = {
-  componentType: 'RegistrationForm',
+  name: 'RegistrationForm',
 
   form: {
     props: {

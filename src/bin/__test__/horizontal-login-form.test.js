@@ -112,7 +112,7 @@ const WrappedHorizontalLoginForm = Form.create({ name: 'HorizontalLoginForm' })(
 export default WrappedHorizontalLoginForm;`
 
 const schema = {
-  componentType: 'HorizontalLoginForm',
+  name: 'HorizontalLoginForm',
 
   form: {
     props: {
