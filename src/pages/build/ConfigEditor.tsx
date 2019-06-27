@@ -4,7 +4,7 @@ import createCodeEditorPlugin from '@/utils/draft-js-code-editor-plugin';
 import createPrismPlugin from '@/utils/draft-js-prism-plugin';
 import createUndoPlugin from 'draft-js-undo-plugin';
 import createMentionPlugin, { defaultSuggestionsFilter } from 'ant-design-draft-mention-plugin';
-import 'draft-js-mention-plugin/lib/plugin.css';
+import 'ant-design-draft-mention-plugin/lib/plugin.css';
 import { EditorState } from 'draft-js';
 import { connect } from 'dva';
 import { Dispatch } from 'redux';

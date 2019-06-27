@@ -56,9 +56,12 @@ const Model: ModelType = {
       });
     },
 
-    *loadConfigCode({ payload }, { put }) {
+    *loadConfigCode({ payload }, { put, select }) {
       if (payload) {
-        const editorState = EditorState.createWithContent(ContentState.createFromText(payload));
+        const prevEditorState: EditorState = yield select(
+          state => state.code.edtiorState,
+        );
+        const editorState = EditorState.createWithContent(ContentState.createFromText(payload), prevEditorState ? prevEditorState.getDecorator() : undefined);
 
         yield put({
           type: 'changeEditorState',
