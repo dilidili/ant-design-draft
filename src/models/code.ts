@@ -7,7 +7,9 @@ const demoRawContent = `{"blocks":[{"key":"1ma6i","text":"const schema = {","typ
 const EMPTY_CONFIG_TEXT = `const schema = {
   name: 'DefaultForm',
   form: {
-    items: [],
+    items: [
+      // form items
+    ],
   },
 }`
 

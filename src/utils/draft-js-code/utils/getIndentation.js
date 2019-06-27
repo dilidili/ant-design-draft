@@ -1,6 +1,6 @@
 var detectIndent = require('detect-indent');
 
-var DEFAULT_INDENTATION = '    ';
+var DEFAULT_INDENTATION = '  ';
 
 /**
  * Detect indentation in a text

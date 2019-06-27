@@ -6,5 +6,6 @@ declare module 'prismjs';
 declare module 'draft-js-plugins-editor';
 declare module 'draft-js-prism-plugin';
 declare module 'draft-js-undo-plugin';
+declare module 'ant-design-draft-mention-plugin';
 declare module '@babel/standalone';
 
