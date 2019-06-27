@@ -16,9 +16,9 @@ const EMPTY_CONFIG_TEXT = `const schema = {
 const delay = (ms: number, val: [any]) => new Promise(res => setTimeout(() => res(val), ms));
 
 export interface CodeModelState {
-  edtiorState: EditorState,
-  generatedCode: EditorState,
-  previewCode: string,
+  edtiorState: EditorState, // config editor
+  generatedCode: EditorState, // user will copy this
+  previewCode: string, // use to render preview components
 }
 
 export interface ModelType {
@@ -27,6 +27,7 @@ export interface ModelType {
   effects: {
     changeEditorState: EffectWithType;
     resetConfigEditor: Effect;
+    loadConfigCode: Effect;
   };
   reducers: {
     changeEditorState: Reducer<CodeModelState>;
@@ -53,6 +54,17 @@ const Model: ModelType = {
         type: 'changeEditorState',
         payload: editorState,
       });
+    },
+
+    *loadConfigCode({ payload }, { put }) {
+      if (payload) {
+        const editorState = EditorState.createWithContent(ContentState.createFromText(payload));
+
+        yield put({
+          type: 'changeEditorState',
+          payload: editorState,
+        });
+      }
     },
 
     changeEditorState: [function* ({ race, take, put }) {

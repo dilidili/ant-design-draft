@@ -16,6 +16,7 @@ import mentions, { Mention } from './mentions';
 
 interface ConfigEdtiorProps {
   editorState: EditorState,
+  saveConfigCode: string,
   dispatch: Dispatch,
 }
 
@@ -64,6 +65,16 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps> {
       ],
       suggestions: [],
     };
+  }
+
+  componentDidMount() {
+    const { saveConfigCode, dispatch } = this.props;
+    if (saveConfigCode) {
+      dispatch({
+        type: 'code/loadConfigCode',
+        payload: saveConfigCode,
+      });
+    }
   }
 
   onChange = (editorState: EditorState) => {
@@ -135,8 +146,9 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps> {
   }
 }
 
-export default connect(({ code }: ConnectState) => {
+export default connect(({ code, save }: ConnectState) => {
   return {
     editorState: code.edtiorState,
+    saveConfigCode: save.configCode,
   }
 })(ConfigEditor);

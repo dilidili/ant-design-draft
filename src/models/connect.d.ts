@@ -1,9 +1,11 @@
 import { CodeModelState } from './code';
+import { SaveModelState } from './save';
 import { EffectsCommandMap, EffectType } from 'dva';
 import { AnyAction } from 'redux';
 
 export interface ConnectState {
   code: CodeModelState;
+  save: SaveModelState;
 }
 
 export type Effect = (
@@ -16,5 +18,3 @@ export type EffectWithType = [(
 ) => void, {
   type: EffectType,
 }];
-
-export type Reducer<S> = (state: S, action: AnyAction) => S;

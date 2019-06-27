@@ -1,10 +1,8 @@
 import React from 'react';
-import styles from './index.css';
-
+import './index.css';
 
 export default function() {
   return (
-    <div>
-    </div>
+    <div />
   );
 }

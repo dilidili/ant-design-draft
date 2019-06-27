@@ -1,11 +1,16 @@
 import React from 'react';
-import styles from './index.css';
+import { PersistGate } from 'redux-persist/integration/react';
+import './index.css';
 
 const BasicLayout: React.FC = props => {
   return (
-    <div>
-      {props.children}
-    </div>
+    <PersistGate
+      persistor={window.g_app._store.persist}
+    >
+      <div>
+        {props.children}
+      </div>
+    </PersistGate>
   );
 };
 
