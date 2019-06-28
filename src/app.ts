@@ -27,7 +27,7 @@ export const dva = {
       err.preventDefault();
       console.error(err.message);
     },
-    onAction: [logger],
+    onAction: [logger].filter(v => !!v),
     extraEnhancers: [persistEnhancer()],
   },
 };
