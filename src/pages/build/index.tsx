@@ -1,11 +1,22 @@
 import React from 'react';
 import { Icon } from 'antd';
+import CodeEditor from '@/pages/build/CodeEditor';
+import { Spring } from 'react-spring/renderprops'
 import styles from './index.less';
 import ConfigEditor from './ConfigEditor';
 import Preview from './Preview';
-import CodeEditor from '@/pages/build/CodeEditor';
+
+enum BuildPageTab {
+  ConfigEditor,
+  Preview,
+  CodeEditor,
+};
 
 class BuildPage extends React.Component {
+  state = {
+    currentVisibleTab: new Set([BuildPageTab.ConfigEditor, BuildPageTab.Preview, BuildPageTab.CodeEditor]),
+  }
+
   renderHeader() {
     return (
       <div className={styles.header}>
@@ -18,25 +29,64 @@ class BuildPage extends React.Component {
   }
 
   renderContent() {
+    const { currentVisibleTab } = this.state;
+    const widthPerTab = ~~(90 / currentVisibleTab.size) + '%';
+
     return (
       <div className={styles.content}>
         {/* config input */}
-        <div className={styles.contentBlock}>
-          <div className={styles.contentHeader}><div/><p>Config</p><div/></div>
-          <ConfigEditor />
-        </div>
+        <Spring
+          to={{
+            opacity: currentVisibleTab.has(BuildPageTab.ConfigEditor) ? 1 : 0,
+            width: currentVisibleTab.has(BuildPageTab.ConfigEditor) ? widthPerTab : '0%',
+          }}
+        >
+          {props => (
+            <div
+              className={styles.contentBlock}
+              style={props}
+              onFocus={() => this.setState({
+                currentVisibleTab: new Set([BuildPageTab.ConfigEditor, BuildPageTab.Preview]),
+              })}
+              onBlur={() => this.setState({
+                currentVisibleTab: new Set([BuildPageTab.ConfigEditor, BuildPageTab.Preview, BuildPageTab.CodeEditor]),
+              })}
+            >
+              <div className={styles.contentHeader}><div/><p>Config</p><div/></div>
+              <ConfigEditor />
+            </div>
+          )}
+        </Spring>
 
         {/* preview */}
-        <div className={styles.contentBlock}>
-          <div className={styles.contentHeader}><div/><p>Preview</p><div/></div>
-          <Preview />
-        </div>
+        <Spring
+          to={{
+            opacity: currentVisibleTab.has(BuildPageTab.Preview) ? 1 : 0,
+            width: currentVisibleTab.has(BuildPageTab.Preview) ? widthPerTab : '0%',
+          }}
+        >
+          {props => (
+            <div className={styles.contentBlock} style={props}>
+              <div className={styles.contentHeader}><div/><p>Preview</p><div/></div>
+              <Preview />
+            </div>
+          )}
+        </Spring>
 
         {/* code */}
-        <div className={styles.contentBlock}>
-          <div className={styles.contentHeader}><div/><p>Code</p><div/></div>
-          <CodeEditor />
-        </div>
+        <Spring
+          to={{
+            opacity: currentVisibleTab.has(BuildPageTab.CodeEditor) ? 1 : 0,
+            width: currentVisibleTab.has(BuildPageTab.CodeEditor) ? widthPerTab : '0%',
+          }}
+        >
+          {props => (
+            <div className={styles.contentBlock} style={props}>
+              <div className={styles.contentHeader}><div/><p>Code</p><div/></div>
+              <CodeEditor />
+            </div>
+          )}
+        </Spring>
       </div>
     )
   }
