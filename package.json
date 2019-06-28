@@ -4,6 +4,7 @@
     "start": "umi dev",
     "build": "umi build",
     "test": "umi test",
+    "analyze": "ANALYZE=1 umi build",
     "lint:es": "eslint --ext .js src mock tests",
     "lint:ts": "tslint \"src/**/*.ts\" \"src/**/*.tsx\"",
     "precommit": "lint-staged"

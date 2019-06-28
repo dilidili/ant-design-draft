@@ -2,7 +2,7 @@ import React from 'react';
 import styles from './CodeEditor.less';
 import createCodeEditorPlugin from '@/utils/draft-js-code-editor-plugin';
 import createPrismPlugin from '@/utils/draft-js-prism-plugin';
-import { EditorState, ContentState } from 'draft-js';
+import { EditorState } from 'draft-js';
 import { connect } from 'dva';
 import { ConnectState } from '@/models/connect';
 import Prism from 'prismjs';
@@ -13,8 +13,6 @@ interface ConfigEdtiorProps {
   generatedCode: string,
   dispatch: Dispatch,
 }
-
-const noop = () => {};
 
 class CodeEditor extends React.Component<ConfigEdtiorProps> {
   constructor(props: ConfigEdtiorProps) {

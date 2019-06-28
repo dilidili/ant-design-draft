@@ -9,6 +9,11 @@ const config: IConfig =  {
       antd: true,
       dva: true,
       title: 'ant-design-draft',
+
+      dynamicImport: {
+        webpackChunkName: true,
+        loadingComponent: './components/Loading.js',
+      },
       
       routes: {
         exclude: [

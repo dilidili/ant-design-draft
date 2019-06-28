@@ -1,16 +1,20 @@
 import React from 'react';
 import { Icon } from 'antd';
-import CodeEditor from '@/pages/build/CodeEditor';
+import CodeEditor from '@/components/Editor/CodeEditor';
+import ConfigEditor from '@/components/Editor/ConfigEditor';
 import { Spring } from 'react-spring/renderprops'
+import dynamic from 'umi/dynamic';
 import styles from './index.less';
-import ConfigEditor from './ConfigEditor';
-import Preview from './Preview';
 
 enum BuildPageTab {
   ConfigEditor,
   Preview,
   CodeEditor,
 };
+
+const Preview: any = dynamic({
+  loader: () => import('@/components/Editor/Preview'),
+})
 
 class BuildPage extends React.Component {
   state = {
