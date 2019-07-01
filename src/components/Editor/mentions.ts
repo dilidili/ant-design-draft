@@ -5,7 +5,27 @@ export type Mention = {
   insertAsText: boolean,
 }
 
-const mentions: Array<Mention> = [
+const mentions: Array<Mention> = [{
+    shortname: 'Row',
+    title: 'FormItem |gutter| FormItem',
+    name: `{
+        type: 'Row',
+        props: {
+          gutter: 24,
+        },
+        layout: [12, 12],
+        items: [{
+          type: 'Input',
+          name: 'inputA',
+          label: 'Input A',
+        }, {
+          type: 'Input',
+          name: 'inputB',
+          label: 'Input B',
+        }],
+      },`,
+    insertAsText: true,
+  },
   {
     shortname: 'Input',
     title: 'Form item label: |--- placeholder ---|',

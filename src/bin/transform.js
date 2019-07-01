@@ -10,6 +10,203 @@ const decodeLiteralPrimative = value => {
   }
 };
 
+const getFormItemElement = (formItem, entries, formProps) => {
+  let formItemChildren = [];
+  let formItemProps = {};
+  let formItemGutter;
+
+  if (formItem.type === 'Row') {
+    const { layout, items, props } = formItem;
+    entries.antdImports.add('Row');
+    entries.antdImports.add('Col');
+
+    const rowChildren = items.map((col, k) => {
+      return {
+        type: 'Col',
+        props: {
+          span: layout[k],
+        },
+        children: [getFormItemElement(col, entries, formProps)],
+      }
+    })
+
+    return {
+      type: 'Row',
+      children: rowChildren,
+      props: props || {},
+    }
+  }
+
+  // support array as element of items
+  let formItemList = formItem;
+  if (!Array.isArray(formItem)) {
+    formItemList = [formItem];
+  }
+
+  formItemList.forEach(formItem => {
+    const {
+      type,
+      onSubmit,
+      name,
+      label,
+      hasFeedback,
+      extra,
+      valuePropName,
+      wrapperCol,
+      initialValue,
+      span,
+      validators,
+      gutter,
+      rules: formItemRules,
+      props: formChildrenProps = {},
+    } = formItem;
+
+    if (label) formItemProps.label = label;
+    if (hasFeedback) formItemProps.hasFeedback = true;
+    if (extra) formItemProps.extra = extra;
+    if (wrapperCol) formItemProps.wrapperCol = wrapperCol;
+    if (gutter) formItemGutter = gutter;
+
+    // field rules
+    const rules = [];
+    (formItemRules || []).forEach(rule => {
+      if (rule === 'required') {
+        rules.push(`{ required: true, message: 'Please input your ${formItem.name}!' }`);
+      } else if (rule === 'email') {
+        rules.push(`{ type: 'email', message: 'The input is not valid E-mail!' }`);
+      }
+    });
+
+    (validators || []).forEach(validator => {
+      if (validator) {
+        rules.push(`{ validator: this.${validator} }`);
+        entries.handlers.push(`
+  ${validator} = (rule, value, callback) => {
+    const form = this.props.form;
+    console.warn('TODO: implement ${validator}');
+    callback();
+  };
+`)
+      }
+    });
+
+    // field children
+    let children = [];
+    let mounted = false;
+    if (type === 'Button') {
+      if (onSubmit) {
+        formChildrenProps.htmlType = "submit";
+      }
+    } else if (type === 'Cascader') {
+      formChildrenProps.options = [];
+    } else if (type === 'Radio.Group') {
+      entries.antdImports.add('Radio');
+
+      children.push({
+        type: 'Radio.Group',
+        props: {},
+        children: (formItem.options || []).map(option => ({
+          type: 'Radio',
+          props: {
+            value: option.value,
+            children: option.text,
+          },
+        })),
+      });
+
+      mounted = true;
+    }
+    
+    if (!!type && !mounted) {
+      if (!~type.indexOf('.') && type.toLowerCase() !== type) {
+        entries.antdImports.add(type);
+      }
+
+      children.push({
+        type: type,
+        props: formChildrenProps,
+      });
+    }
+
+    // form submit
+    if (onSubmit) {
+      entries.handlers.push(`
+  handleSubmit = e => {
+    e.preventDefault();
+    this.props.form.validateFields((err, values) => {
+      if (!err) {
+        console.log('Received values of form: ', values);
+      }
+    });
+  };
+`)
+
+      formProps.onSubmit = {
+        type: 'refrence',
+        payload: 'this.handleSubmit',
+      }
+    }
+
+    // children
+    if (name) {
+      children = [{
+        type: 'custom',
+        children,
+        render: (indent) => {
+          const valuePropNameProp = valuePropName !== undefined ? indent + '  ' + `valuePropName: ${decodeLiteralPrimative(valuePropName)},\n` : '';
+          const initialValueProp = initialValue !== undefined ? indent + '  ' + `initialValue: ${decodeLiteralPrimative(initialValue)},\n` : ''
+
+          return {
+            start: (
+              indent + `{getFieldDecorator('${formItem.name}', {\n`
+              + indent + '  ' + `rules: [${rules.join(', ')}],\n`
+              + valuePropNameProp
+              + initialValueProp
+              + indent + '})('
+            ),
+            end: (
+              indent + `)}`
+            )
+          }
+        },
+      }]
+    }
+
+    if (typeof span === 'number') {
+      entries.antdImports.add('Col');
+      children = [{
+        type: 'Col',
+        props: {
+          span,
+        },
+        children,
+      }]
+    }
+
+    formItemChildren = formItemChildren.concat(children);
+  })
+
+  let formItemElement = {
+    type: 'Form.Item',
+    children: formItemChildren,
+    props: formItemProps,
+  };
+
+  // wrap with row layout
+  if (typeof formItemGutter === 'number') {
+    entries.antdImports.add('Row');
+    formItemElement.children = [{
+      type: 'Row',
+      props: {
+        gutter: formItemGutter,
+      },
+      children: formItemElement.children,
+    }]
+  }
+
+  return formItemElement;
+}
+
 const transformFormField = (fieldValue, entries, config = {}) => {
   const {
     items,
@@ -25,178 +222,7 @@ const transformFormField = (fieldValue, entries, config = {}) => {
   // FormItem
   if (items && items.length) {
     items.forEach(formItem => {
-      let formItemChildren = [];
-      let formItemProps = {};
-      let formItemGutter;
-
-      // support array as element of items
-      let formItemList = formItem;
-      if (!Array.isArray(formItem)) {
-        formItemList = [formItem];
-      }
-
-      formItemList.forEach(formItem => {
-        const {
-          type,
-          onSubmit,
-          name,
-          label,
-          hasFeedback,
-          extra,
-          valuePropName,
-          wrapperCol,
-          initialValue,
-          span,
-          validators,
-          gutter,
-          rules: formItemRules,
-          props: formChildrenProps = {},
-        } = formItem;
-
-        if (label) formItemProps.label = label;
-        if (hasFeedback) formItemProps.hasFeedback = true;
-        if (extra) formItemProps.extra = extra;
-        if (wrapperCol) formItemProps.wrapperCol = wrapperCol;
-        if (gutter) formItemGutter = gutter;
-  
-        // field rules
-        const rules = [];
-        (formItemRules || []).forEach(rule => {
-          if (rule === 'required') {
-            rules.push(`{ required: true, message: 'Please input your ${formItem.name}!' }`);
-          } else if (rule === 'email') {
-            rules.push(`{ type: 'email', message: 'The input is not valid E-mail!' }`);
-          }
-        });
-
-        (validators || []).forEach(validator => {
-          if (validator) {
-            rules.push(`{ validator: this.${validator} }`);
-            entries.handlers.push(`
-  ${validator} = (rule, value, callback) => {
-    const form = this.props.form;
-    console.warn('TODO: implement ${validator}');
-    callback();
-  };
-`)
-          }
-        });
-
-        // field children
-        let children = [];
-        let mounted = false;
-        if (type === 'Button') {
-          if (onSubmit) {
-            formChildrenProps.htmlType = "submit";
-          }
-        } else if (type === 'Cascader') {
-          formChildrenProps.options = [];
-        } else if (type === 'Radio.Group') {
-          entries.antdImports.add('Radio');
-
-          children.push({
-            type: 'Radio.Group',
-            props: {},
-            children: (formItem.options || []).map(option => ({
-              type: 'Radio',
-              props: {
-                value: option.value,
-                children: option.text,
-              },
-            })),
-          });
-
-          mounted = true;
-        }
-        
-        if (!!type && !mounted) {
-          if (!~type.indexOf('.') && type.toLowerCase() !== type) {
-            entries.antdImports.add(type);
-          }
-
-          children.push({
-            type: type,
-            props: formChildrenProps,
-          });
-        }
-
-        // form submit
-        if (onSubmit) {
-          entries.handlers.push(`
-  handleSubmit = e => {
-    e.preventDefault();
-    this.props.form.validateFields((err, values) => {
-      if (!err) {
-        console.log('Received values of form: ', values);
-      }
-    });
-  };
-`)
-
-          formProps.onSubmit = {
-            type: 'refrence',
-            payload: 'this.handleSubmit',
-          }
-        }
-
-        // children
-        if (name) {
-          children = [{
-            type: 'custom',
-            children,
-            render: (indent) => {
-              const valuePropNameProp = valuePropName !== undefined ? indent + '  ' + `valuePropName: ${decodeLiteralPrimative(valuePropName)},\n` : '';
-              const initialValueProp = initialValue !== undefined ? indent + '  ' + `initialValue: ${decodeLiteralPrimative(initialValue)},\n` : ''
-
-              return {
-                start: (
-                  indent + `{getFieldDecorator('${formItem.name}', {\n`
-                  + indent + '  ' + `rules: [${rules.join(', ')}],\n`
-                  + valuePropNameProp
-                  + initialValueProp
-                  + indent + '})('
-                ),
-                end: (
-                  indent + `)}`
-                )
-              }
-            },
-          }]
-        }
-
-        if (typeof span === 'number') {
-          entries.antdImports.add('Col');
-          children = [{
-            type: 'Col',
-            props: {
-              span,
-            },
-            children,
-          }]
-        }
-
-        formItemChildren = formItemChildren.concat(children);
-      })
-
-
-      let formItemElement = {
-        type: 'Form.Item',
-        children: formItemChildren,
-        props: formItemProps,
-      };
-
-      // wrap with row layout
-      if (typeof formItemGutter === 'number') {
-        entries.antdImports.add('Row');
-        formItemElement.children = [{
-          type: 'Row',
-          props: {
-            gutter: formItemGutter,
-          },
-          children: formItemElement.children,
-        }]
-      }
-
+      const formItemElement = getFormItemElement(formItem, entries, formProps);
       formElement.children.push(formItemElement);
     });
   }
