@@ -8,10 +8,11 @@ import { ConnectState } from '@/models/connect';
 import Prism from 'prismjs';
 import Editor from 'draft-js-plugins-editor';
 import { Dispatch } from 'redux';
+import CopyButton from '../Button/CopyButton';
 
 interface ConfigEdtiorProps {
-  generatedCode: string,
   dispatch: Dispatch,
+  generatedCode: EditorState,
 }
 
 class CodeEditor extends React.Component<ConfigEdtiorProps> {
@@ -54,6 +55,8 @@ class CodeEditor extends React.Component<ConfigEdtiorProps> {
   }
 
   render() {
+    const { generatedCode } = this.props;
+
     return (
       <div className={styles.container}>
         {/* header */}
@@ -64,6 +67,9 @@ class CodeEditor extends React.Component<ConfigEdtiorProps> {
             <span className={styles.fullScreen} />
           </div>
           <div className={styles.title}>Generated code</div>
+
+          {/* reset content */}
+          <CopyButton className={styles.copyButton} text={generatedCode.getCurrentContent().getPlainText()}/>
         </div>
 
         {/* editor */}

@@ -10,4 +10,4 @@ declare module 'ant-design-draft-mention-plugin';
 declare module 'redux-logger';
 declare module '@babel/standalone';
 declare module 'redux-persist-transform-immutable';
-
+declare module 'react-copy-to-clipboard';
