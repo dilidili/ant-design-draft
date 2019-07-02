@@ -10,7 +10,7 @@ const decodeLiteralPrimative = value => {
   }
 };
 
-const getFormItemElement = (formItem, entries, formProps) => {
+const getFormItemElement = (formItem, entries, formProps, config) => {
   let formItemChildren = [];
   let formItemProps = {};
   let formItemGutter;
@@ -26,7 +26,7 @@ const getFormItemElement = (formItem, entries, formProps) => {
         props: {
           span: layout[k],
         },
-        children: [getFormItemElement(col, entries, formProps)],
+        children: [getFormItemElement(col, entries, formProps, config)],
       }
     })
 
@@ -79,14 +79,26 @@ const getFormItemElement = (formItem, entries, formProps) => {
 
     (validators || []).forEach(validator => {
       if (validator) {
-        rules.push(`{ validator: this.${validator} }`);
-        entries.handlers.push(`
+        if (config.reactApi === 'Hooks') {
+          rules.push(`{ validator: ${validator} }`);
+          entries.handlers.push(`
+  const ${validator} = (rule, value, callback) => {
+    const form = props.form;
+    console.warn('TODO: implement ${validator}');
+    callback();
+  };
+`)
+        } else {
+          rules.push(`{ validator: this.${validator} }`);
+          entries.handlers.push(`
   ${validator} = (rule, value, callback) => {
     const form = this.props.form;
     console.warn('TODO: implement ${validator}');
     callback();
   };
 `)
+        }
+
       }
     });
 
@@ -130,7 +142,18 @@ const getFormItemElement = (formItem, entries, formProps) => {
 
     // form submit
     if (onSubmit) {
-      entries.handlers.push(`
+      if (config.reactApi === 'Hooks') {
+        entries.handlers.push(`  const handleSubmit = e => {
+    e.preventDefault();
+    props.form.validateFields((err, values) => {
+      if (!err) {
+        console.log('Received values of form: ', values);
+      }
+    });
+  };
+`)
+      } else {
+        entries.handlers.push(`
   handleSubmit = e => {
     e.preventDefault();
     this.props.form.validateFields((err, values) => {
@@ -140,6 +163,7 @@ const getFormItemElement = (formItem, entries, formProps) => {
     });
   };
 `)
+      }
 
       formProps.onSubmit = {
         type: 'refrence',
@@ -222,7 +246,7 @@ const transformFormField = (fieldValue, entries, config = {}) => {
   // FormItem
   if (items && items.length) {
     items.forEach(formItem => {
-      const formItemElement = getFormItemElement(formItem, entries, formProps);
+      const formItemElement = getFormItemElement(formItem, entries, formProps, config);
       formElement.children.push(formItemElement);
     });
   }
@@ -234,7 +258,11 @@ const transformFormField = (fieldValue, entries, config = {}) => {
   if (config.env === 'browser') {
     entries.template = require('./templates/Form.browser.mustache.js');
   } else {
-    entries.template = require('./templates/Form.mustache.js');
+    if (config.reactApi === 'Hooks') {
+      entries.template = require('./templates/Form.hooks.mustache.js');
+    } else {
+      entries.template = require('./templates/Form.mustache.js');
+    }
   }
 }
 

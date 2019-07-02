@@ -1,22 +1,29 @@
-import { Effect, EffectWithType } from './connect.d';
-import { Reducer, Action } from 'redux';
+import { EffectWithType, Reducer } from './connect.d';
+import { Action } from 'redux';
+import { ReactAPI } from '@/models/code';
 
 export interface SaveModelState {
   configCode: string,
+  ReactAPI: ReactAPI;
 }
 
 interface UpdateConfigCodeAction extends Action {
   payload: string;
 }
 
+interface UpdateReactAPIAction extends Action {
+  payload: ReactAPI;
+}
+
 export interface ModelType {
   namespace: string;
-  state: SaveModelState,
+  state?: SaveModelState,
   effects: {
     watchConfigEditorChange: EffectWithType;
   };
   reducers: {
     updateConfigCode: Reducer<SaveModelState, UpdateConfigCodeAction>;
+    updateReactAPI: Reducer<SaveModelState, UpdateReactAPIAction>;
   };
 }
 
@@ -25,6 +32,7 @@ const Model: ModelType = {
 
   state: {
     configCode: '',
+    ReactAPI: ReactAPI.Component,
   },
 
   effects: {
@@ -45,10 +53,17 @@ const Model: ModelType = {
   },
 
   reducers: {
-    updateConfigCode(state, { payload }) {
+    updateConfigCode(state: SaveModelState, { payload }) {
       return {
         ...state,
         configCode: payload,
+      };
+    },
+
+    updateReactAPI(state: SaveModelState, { payload }: UpdateReactAPIAction) {
+      return {
+        ...state,
+        ReactAPI: payload,
       };
     },
   },

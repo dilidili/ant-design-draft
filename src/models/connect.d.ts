@@ -1,7 +1,7 @@
 import { CodeModelState } from './code';
 import { SaveModelState } from './save';
 import { EffectsCommandMap, EffectType } from 'dva';
-import { AnyAction } from 'redux';
+import { AnyAction, Action } from 'redux';
 
 export interface ConnectState {
   code: CodeModelState;
@@ -18,3 +18,8 @@ export type EffectWithType = [(
 ) => void, {
   type: EffectType,
 }];
+
+export type Reducer<S = any, A extends Action = AnyAction> = (
+  state: S,
+  action: A
+) => S

@@ -66,6 +66,18 @@
 
 .copyButton {
   position: absolute;
+  right: 36px;
+  top: 12px;
+  cursor: pointer;
+  color: #666;
+
+  &:hover {
+    color: black;
+  }
+}
+
+.settingButton {
+  position: absolute;
   right: 12px;
   top: 12px;
   cursor: pointer;
@@ -73,5 +85,17 @@
 
   &:hover {
     color: black;
+  }
+}
+
+.settingContent {
+  display: flex;
+  align-items: center;
+  min-width: 225px;
+
+  .settingContentLabel {
+    font-size: 12px;
+    margin-right: 8px;
+    flex-shrink: 0;
   }
 }

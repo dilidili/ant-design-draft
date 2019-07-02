@@ -9,10 +9,13 @@ import Prism from 'prismjs';
 import Editor from 'draft-js-plugins-editor';
 import { Dispatch } from 'redux';
 import CopyButton from '../Button/CopyButton';
+import { Popover, Icon, Select } from 'antd';
+import { ReactAPI } from '@/models/code';
 
 interface ConfigEdtiorProps {
   dispatch: Dispatch,
   generatedCode: EditorState,
+  reactAPISetting: ReactAPI,
 }
 
 class CodeEditor extends React.Component<ConfigEdtiorProps> {
@@ -54,6 +57,37 @@ class CodeEditor extends React.Component<ConfigEdtiorProps> {
     )
   }
 
+  renderSettingButton() {
+    const { reactAPISetting, dispatch } = this.props;
+
+    const content = (
+      <div>
+        {/* React API */}
+        <div className={styles.settingContent}>
+          <div className={styles.settingContentLabel}>React API:</div>
+          <Select
+            size='small'
+            value={reactAPISetting}
+            onChange={(value) => {
+              dispatch({
+                type: 'save/updateReactAPI',
+                payload: value,
+              });
+            }}>
+            <Select.Option value={ReactAPI.Component}>Component-Based</Select.Option>
+            <Select.Option value={ReactAPI.Hooks}>React hooks</Select.Option>
+          </Select>
+        </div>
+      </div>
+    );
+
+    return (
+      <Popover placement="bottom" trigger="click" title="Code settings" content={content}>
+        <Icon type="setting" className={styles.settingButton}/>
+      </Popover>
+    )
+  }
+
   render() {
     const { generatedCode } = this.props;
 
@@ -68,8 +102,11 @@ class CodeEditor extends React.Component<ConfigEdtiorProps> {
           </div>
           <div className={styles.title}>Generated code</div>
 
-          {/* reset content */}
+          {/* copy content */}
           <CopyButton className={styles.copyButton} text={generatedCode.getCurrentContent().getPlainText()}/>
+
+          {/* setting content */}
+          {this.renderSettingButton()}
         </div>
 
         {/* editor */}
@@ -79,8 +116,9 @@ class CodeEditor extends React.Component<ConfigEdtiorProps> {
   }
 }
 
-export default connect(({ code }: ConnectState) => {
+export default connect(({ code, save }: ConnectState) => {
   return {
     generatedCode: code.generatedCode,
+    reactAPISetting: save.ReactAPI,
   }
 })(CodeEditor);

@@ -3,22 +3,14 @@ module.exports = `const React = window.React;
 {{{antdImports}}}
 {{/antdImports}}
 
-class {{{componentType}}} extends React.Component {
+const {{{componentType}}} = (props) => {
 {{#handlers}}
 {{{.}}}
 {{/handlers}}
-  render() {
-{{#renderForm.declares}}
-{{{.}}}
-{{/renderForm.declares}}
-{{#renderForm.declareMap}}
-{{{.}}}
-{{/renderForm.declareMap}}
-    return (
+  return (
 {{{renderForm.return}}}
-    );
-  }
-}
+  );
+};
 
 const Wrapped{{{componentType}}} = Form.create({ name: '{{{componentType}}}' })({{{componentType}}});
 
