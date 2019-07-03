@@ -102,20 +102,20 @@ const Model: ModelType = {
               });
 
               // preview code
-              // const code = transform(transformSchema(eval(configCode), { env: 'browser', reactApi, }), {
-              //   presets: [
-              //     'es2015',
-              //     'react',
-              //   ],
-              //   plugins: [
-              //     ["proposal-class-properties", { "loose": false }],
-              //   ],
-              // }).code;
+              const code = transform(transformSchema(eval(configCode), { env: 'browser', reactApi, }), {
+                presets: [
+                  'es2015',
+                  'react',
+                ],
+                plugins: [
+                  ["proposal-class-properties", { "loose": false }],
+                ],
+              }).code;
 
-              // yield put({
-              //   type: 'updatePreviewCode',
-              //   payload: code,
-              // });
+              yield put({
+                type: 'updatePreviewCode',
+                payload: code,
+              });
             } catch(err) {
               console.error(err);
             }

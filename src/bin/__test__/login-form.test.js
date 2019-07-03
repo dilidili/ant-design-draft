@@ -192,6 +192,6 @@ describe('Transform: login form', () => {
     const content = transformSchema(schema);
 
     expect(content).toEqual(output);
-    fs.writeFileSync(path.join(__dirname, '../../pages/examples/login-form.tsx'), content, 'utf8');
+    // fs.writeFileSync(path.join(__dirname, '../../pages/examples/form.tsx'), content, 'utf8');
   });
 });

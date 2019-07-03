@@ -1,9 +1,15 @@
-module.exports = `const React = window.React;
+module.exports = `import React from 'react';
 {{#antdImports}}
 {{{antdImports}}}
 {{/antdImports}}
 
 const {{{componentType}}} = (props) => {
+{{#renderForm.declares}}
+{{{.}}}
+{{/renderForm.declares}}
+{{#renderForm.declareMap}}
+{{{.}}}
+{{/renderForm.declareMap}}
 {{#handlers}}
 {{{.}}}
 {{/handlers}}
@@ -14,4 +20,4 @@ const {{{componentType}}} = (props) => {
 
 const Wrapped{{{componentType}}} = Form.create({ name: '{{{componentType}}}' })({{{componentType}}});
 
-Wrapped{{{componentType}}};`
+export default Wrapped{{{componentType}}};`

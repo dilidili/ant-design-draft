@@ -82,7 +82,13 @@ class CodeEditor extends React.Component<ConfigEdtiorProps> {
     );
 
     return (
-      <Popover placement="bottom" trigger="click" title="Code settings" content={content}>
+      <Popover
+        placement="bottomLeft"
+        trigger="click"
+        title="Code settings"
+        content={content}
+        arrowPointAtCenter
+      >
         <Icon type="setting" className={styles.settingButton}/>
       </Popover>
     )

@@ -85,7 +85,10 @@ class BuildPage extends React.Component {
           }}
         >
           {props => (
-            <div className={styles.contentBlock} style={props}>
+            <div
+              className={styles.contentBlock}
+              style={props}
+            >
               <div className={styles.contentHeader}><div/><p>Code</p><div/></div>
               <CodeEditor />
             </div>

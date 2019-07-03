@@ -152,6 +152,10 @@ const getFormItemElement = (formItem, entries, formProps, config) => {
     });
   };
 `)
+        formProps.onSubmit = {
+          type: 'refrence',
+          payload: 'handleSubmit',
+        }
       } else {
         entries.handlers.push(`
   handleSubmit = e => {
@@ -163,11 +167,10 @@ const getFormItemElement = (formItem, entries, formProps, config) => {
     });
   };
 `)
-      }
-
-      formProps.onSubmit = {
-        type: 'refrence',
-        payload: 'this.handleSubmit',
+        formProps.onSubmit = {
+          type: 'refrence',
+          payload: 'this.handleSubmit',
+        }
       }
     }
 
@@ -253,7 +256,11 @@ const transformFormField = (fieldValue, entries, config = {}) => {
 
   entries.antdImports.add('Form');
   entries.renderForm.return.push(formElement);
-  entries.renderForm.declares.push('    const { getFieldDecorator } = this.props.form;');
+  if (config.reactApi === 'Hooks') {
+    entries.renderForm.declares.push('  const { getFieldDecorator } = props.form;');
+  } else {
+    entries.renderForm.declares.push('    const { getFieldDecorator } = this.props.form;');
+  }
 
   if (config.env === 'browser') {
     entries.template = require('./templates/Form.browser.mustache.js');
@@ -267,7 +274,7 @@ const transformFormField = (fieldValue, entries, config = {}) => {
 }
 
 const transformFormInModalField = (fieldValue, entries, config = {}) => {
-  transformFormField(fieldValue.form, entries);
+  transformFormField(fieldValue.form, entries, config);
 
   const modalElement = {
     type: 'Modal',
@@ -292,7 +299,7 @@ const transformFormInModalField = (fieldValue, entries, config = {}) => {
       render: (indent) => {
         return {
           start: (
-            indent + '{this.renderForm()}'
+            config.reactApi === 'Hooks' ? indent + `<Wrapped${entries.componentType} wrappedComponentRef={wrappedComponentRef} />` : indent + '{this.renderForm()}'
           ),
         }
       },
@@ -302,13 +309,21 @@ const transformFormInModalField = (fieldValue, entries, config = {}) => {
   entries.antdImports.add('Button');
   entries.antdImports.add('Modal');
   entries.render.buttonLabel = fieldValue.buttonLabel || 'Button';
-  entries.render.declares.push('    const { visible, onCancel, onCreate, form } = this.props;');
+  if (config.reactApi === 'Hooks') {
+    entries.render.declares.push('  const { visible, onCancel, onCreate, wrappedComponentRef } = props;');
+  } else {
+    entries.render.declares.push('    const { visible, onCancel, onCreate, form } = this.props;');
+  }
   entries.render.return.push(modalElement);
 
   if (config.env === 'browser') {
     entries.template = require('./templates/FormInModal.browser.mustache.js');
   } else {
-    entries.template = require('./templates/FormInModal.mustache.js');
+    if (config.reactApi === 'Hooks') {
+      entries.template = require('./templates/FormInModal.hooks.mustache.js');
+    } else {
+      entries.template = require('./templates/FormInModal.mustache.js');
+    }
   }
 }
 
@@ -422,20 +437,23 @@ const generate = (entries, config = {}) => {
     view.antdImports = null;
   }
 
+  const renderReturnIndent = config.reactApi === 'Hooks' ? 4 : 6;
   if (entries.render.return && entries.render.return.length > 0) {
-    view.render.return = renderElements(entries.render.return, 6, entries, entries.render).join('\n');
+    view.render.return = renderElements(entries.render.return, renderReturnIndent, entries, entries.render).join('\n');
   }
   if (entries.renderForm.return && entries.renderForm.return.length > 0) {
-    view.renderForm.return = renderElements(entries.renderForm.return, 6, entries, entries.renderForm).join('\n');
+    view.renderForm.return = renderElements(entries.renderForm.return, renderReturnIndent, entries, entries.renderForm).join('\n');
   }
+
+  const indent = config.reactApi === 'Hooks' ? '  ' : '    ';
 
   // transform delareMap to list format
   view.render.declareMap = Object.keys(view.render.declareMap).reduce((r, k) => {
-    r.push(`const ${view.render.declareMap[k]} = ${k};`.split('\n').map(v => '    ' + v).join('\n'));
+    r.push(`const ${view.render.declareMap[k]} = ${k};`.split('\n').map(v => indent + v).join('\n'));
     return r;
   }, []);
   view.renderForm.declareMap = Object.keys(view.renderForm.declareMap).reduce((r, k) => {
-    r.push(`const ${view.renderForm.declareMap[k]} = ${k};`.split('\n').map(v => '    ' + v).join('\n'));
+    r.push(`const ${view.renderForm.declareMap[k]} = ${k};`.split('\n').map(v => indent + v).join('\n'));
     return r;
   }, []);
 
