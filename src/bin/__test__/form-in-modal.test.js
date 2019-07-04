@@ -319,8 +319,6 @@ const schema = {
   },
 }
 
-
-
 describe('Transform: form in modal', () => {
   it('transform correctly', () => {
     const content = transformSchema(schema);

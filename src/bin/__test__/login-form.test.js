@@ -121,6 +121,64 @@ class NormalLoginForm extends React.Component {
 const WrappedNormalLoginForm = Form.create({ name: 'NormalLoginForm' })(NormalLoginForm);
 export default WrappedNormalLoginForm;`
 
+const hooksOutput = `import React from 'react';
+import { Input, Checkbox, Button, Form } from 'antd';
+
+const NormalLoginForm = (props) => {
+  const { getFieldDecorator } = props.form;
+  const handleSubmit = e => {
+    e.preventDefault();
+    props.form.validateFields((err, values) => {
+      if (!err) {
+        console.log('Received values of form: ', values);
+      }
+    });
+  };
+
+  return (
+    <Form className="login-form" onSubmit={handleSubmit}>
+      <Form.Item>
+        {getFieldDecorator('username', {
+          rules: [{ required: true, message: 'Please input your username!' }],
+        })(
+          <Input placeholder="Username" />
+        )}
+      </Form.Item>
+      <Form.Item>
+        {getFieldDecorator('password', {
+          rules: [{ required: true, message: 'Please input your password!' }],
+        })(
+          <Input type="password" placeholder="Password" />
+        )}
+      </Form.Item>
+      <Form.Item>
+        {getFieldDecorator('remember', {
+          rules: [],
+          valuePropName: 'checked',
+          initialValue: true,
+        })(
+          <Checkbox>
+            Remember me
+          </Checkbox>
+        )}
+        <a className="login-form-forgot" href="">
+          Forgot password
+        </a>
+        <Button type="primary" className="login-form-button" htmlType="submit">
+          Log in
+        </Button>
+        <a href="">
+          register now!
+        </a>
+      </Form.Item>
+    </Form>
+  );
+};
+
+const WrappedNormalLoginForm = Form.create({ name: 'NormalLoginForm' })(NormalLoginForm);
+
+export default WrappedNormalLoginForm;`
+
 const schema = {
   name: 'NormalLoginForm',
 
@@ -194,4 +252,11 @@ describe('Transform: login form', () => {
     expect(content).toEqual(output);
     // fs.writeFileSync(path.join(__dirname, '../../pages/examples/form.tsx'), content, 'utf8');
   });
+
+  it(`transform in hooks mode`, () => {
+    const content = transformSchema(schema, { reactApi: 'Hooks' });
+
+    expect(content).toEqual(hooksOutput);
+    // fs.writeFileSync(path.join(__dirname, '../../pages/examples/form.tsx'), content, 'utf8');
+  })
 });

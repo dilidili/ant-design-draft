@@ -266,11 +266,115 @@ class TimeRelatedForm extends React.Component {
 const WrappedTimeRelatedForm = Form.create({ name: 'TimeRelatedForm' })(TimeRelatedForm);
 export default WrappedTimeRelatedForm;`
 
+const hooksOutput = `import React from 'react';
+import { DatePicker, TimePicker, Button, Form } from 'antd';
+
+const TimeRelatedForm = (props) => {
+  const { getFieldDecorator } = props.form;
+  const formLabelColProp = {
+    "xs": {
+      "span": 24
+    },
+    "sm": {
+      "span": 8
+    }
+  };
+  const formWrapperColProp = {
+    "xs": {
+      "span": 24
+    },
+    "sm": {
+      "span": 16
+    }
+  };
+  const formItemWrapperColProp = {
+    "xs": {
+      "span": 24,
+      "offset": 0
+    },
+    "sm": {
+      "span": 16,
+      "offset": 8
+    }
+  };
+  const handleSubmit = e => {
+    e.preventDefault();
+    props.form.validateFields((err, values) => {
+      if (!err) {
+        console.log('Received values of form: ', values);
+      }
+    });
+  };
+
+  return (
+    <Form labelCol={formLabelColProp} wrapperCol={formWrapperColProp} onSubmit={handleSubmit}>
+      <Form.Item label="DatePicker">
+        {getFieldDecorator('date-picker', {
+          rules: [{ required: true, message: 'Please input your date-picker!' }],
+        })(
+          <DatePicker />
+        )}
+      </Form.Item>
+      <Form.Item label="DatePicker[showTime]">
+        {getFieldDecorator('date-time-picker', {
+          rules: [{ required: true, message: 'Please input your date-time-picker!' }],
+        })(
+          <DatePicker showTime={true} format="YYYY-MM-DD HH:mm:ss" />
+        )}
+      </Form.Item>
+      <Form.Item label="MonthPicker">
+        {getFieldDecorator('month-picker', {
+          rules: [{ required: true, message: 'Please input your month-picker!' }],
+        })(
+          <DatePicker.MonthPicker />
+        )}
+      </Form.Item>
+      <Form.Item label="RangePicker">
+        {getFieldDecorator('range-picker', {
+          rules: [{ required: true, message: 'Please input your range-picker!' }],
+        })(
+          <DatePicker.RangePicker />
+        )}
+      </Form.Item>
+      <Form.Item label="RangePicker[showTime]">
+        {getFieldDecorator('range-time-picker', {
+          rules: [{ required: true, message: 'Please input your range-time-picker!' }],
+        })(
+          <DatePicker.RangePicker showTime={true} format="YYYY-MM-DD HH:mm:ss" />
+        )}
+      </Form.Item>
+      <Form.Item label="TimePicker">
+        {getFieldDecorator('time-picker', {
+          rules: [{ required: true, message: 'Please input your time-picker!' }],
+        })(
+          <TimePicker />
+        )}
+      </Form.Item>
+      <Form.Item wrapperCol={formItemWrapperColProp}>
+        <Button type="primary" htmlType="submit">
+          Submit
+        </Button>
+      </Form.Item>
+    </Form>
+  );
+};
+
+const WrappedTimeRelatedForm = Form.create({ name: 'TimeRelatedForm' })(TimeRelatedForm);
+
+export default WrappedTimeRelatedForm;`;
+
 describe('Transform: time related form', () => {
   it('transform correctly', () => {
     const content = transformSchema(schema);
 
     expect(content).toEqual(output);
+    // fs.writeFileSync(path.join(__dirname, '../../pages/examples/form.tsx'), content, 'utf8');
+  });
+
+  it(`transform in hooks mode`, () => {
+    const content = transformSchema(schema, { reactApi: 'Hooks' });
+
+    expect(content).toEqual(hooksOutput);
     // fs.writeFileSync(path.join(__dirname, '../../pages/examples/form.tsx'), content, 'utf8');
   });
 });
