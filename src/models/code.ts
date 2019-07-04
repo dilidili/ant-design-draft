@@ -21,7 +21,7 @@ export enum ReactAPI {
 const delay = (ms: number, val: [any]) => new Promise(res => setTimeout(() => res(val), ms));
 
 export interface CodeModelState {
-  edtiorState: EditorState, // config editor
+  editorState: EditorState, // config editor
   generatedCode: EditorState, // user will copy this
   previewCode: string, // use to render preview components
 }
@@ -31,6 +31,7 @@ export interface ModelType {
   state: CodeModelState,
   effects: {
     changeEditorState: EffectWithType;
+    changeReactApi: EffectWithType;
     resetConfigEditor: Effect;
     loadConfigCode: Effect;
   };
@@ -46,7 +47,7 @@ const Model: ModelType = {
   namespace: 'code',
 
   state: {
-    edtiorState: EditorState.createWithContent(convertFromRaw(JSON.parse(demoRawContent))),
+    editorState: EditorState.createWithContent(convertFromRaw(JSON.parse(demoRawContent))),
     generatedCode: EditorState.createEmpty(),
     previewCode: '',
   },
@@ -64,7 +65,7 @@ const Model: ModelType = {
     *loadConfigCode({ payload }, { put, select }) {
       if (payload) {
         const prevEditorState: EditorState = yield select(
-          state => state.code.edtiorState,
+          state => state.code.editorState,
         );
         const editorState = EditorState.createWithContent(ContentState.createFromText(payload), prevEditorState ? prevEditorState.getDecorator() : undefined);
 
@@ -75,13 +76,28 @@ const Model: ModelType = {
       }
     },
 
+    changeReactApi: [function* ({ take, put, select }) {
+      while(true) {
+        yield take('save/updateReactAPI');
+
+        const editorState = yield select(state => state.code.editorState);
+        yield put({
+          type: 'changeEditorState',
+          payload: editorState,
+          immediately: true,
+        });
+      }
+    }, {
+      type: 'watcher',
+    }],
+
     changeEditorState: [function* ({ race, take, put, select }) {
       while(true) {
         let action = yield take('changeEditorState');
 
         while(true) {
           const { debounced, latestAction } = yield race({
-            debounced: delay(1500, [true]),
+            debounced: delay(action.immediately ? 0 : 1500, [true]),
             latestAction: take('changeEditorState'),
           });
 
@@ -102,7 +118,7 @@ const Model: ModelType = {
               });
 
               // preview code
-              const code = transform(transformSchema(eval(configCode), { env: 'browser', reactApi, }), {
+              const code = transform(transformSchema(eval(configCode), { env: 'browser', }), {
                 presets: [
                   'es2015',
                   'react',
@@ -136,7 +152,7 @@ const Model: ModelType = {
       // console.log(JSON.stringify(convertToRaw(payload.getCurrentContent())));
       return {
         ...state,
-        edtiorState: payload,
+        editorState: payload,
       };
     },
     changeCodeEditorState(state: CodeModelState, { payload }): CodeModelState {

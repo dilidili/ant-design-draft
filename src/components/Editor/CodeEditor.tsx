@@ -16,9 +16,16 @@ interface ConfigEdtiorProps {
   dispatch: Dispatch,
   generatedCode: EditorState,
   reactAPISetting: ReactAPI,
+  onFocus?: Function,
+  onBlur?: Function,
 }
 
-class CodeEditor extends React.Component<ConfigEdtiorProps> {
+interface ConfigEdtiorState {
+  settingVisible: boolean,
+  plugins: Array<any>,
+}
+
+class CodeEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState> {
   constructor(props: ConfigEdtiorProps) {
     super(props);
 
@@ -29,6 +36,8 @@ class CodeEditor extends React.Component<ConfigEdtiorProps> {
         }),
         createCodeEditorPlugin(),
       ],
+
+      settingVisible: false,
     };
   }
 
@@ -43,7 +52,7 @@ class CodeEditor extends React.Component<ConfigEdtiorProps> {
 
   renderEditor() {
     const { plugins }: any = this.state;
-    const { generatedCode } = this.props;
+    const { generatedCode, onFocus, onBlur } = this.props;
 
     return (
       <div className={styles.editor}>
@@ -51,7 +60,8 @@ class CodeEditor extends React.Component<ConfigEdtiorProps> {
           editorState={generatedCode}
           plugins={plugins}
           onChange={this.onChange}
-          readOnly={true}
+          onFocus={onFocus}
+          onBlur={onBlur}
         />
       </div>
     )
@@ -59,6 +69,7 @@ class CodeEditor extends React.Component<ConfigEdtiorProps> {
 
   renderSettingButton() {
     const { reactAPISetting, dispatch } = this.props;
+    const { settingVisible } = this.state;
 
     const content = (
       <div>
@@ -69,6 +80,10 @@ class CodeEditor extends React.Component<ConfigEdtiorProps> {
             size='small'
             value={reactAPISetting}
             onChange={(value) => {
+              this.setState({
+                settingVisible: false,
+              });
+
               dispatch({
                 type: 'save/updateReactAPI',
                 payload: value,
@@ -86,8 +101,14 @@ class CodeEditor extends React.Component<ConfigEdtiorProps> {
         placement="bottomLeft"
         trigger="click"
         title="Code settings"
+        visible={settingVisible}
         content={content}
         arrowPointAtCenter
+        onVisibleChange={(visible) => {
+          this.setState({
+            settingVisible: visible,
+          });
+        }}
       >
         <Icon type="setting" className={styles.settingButton}/>
       </Popover>

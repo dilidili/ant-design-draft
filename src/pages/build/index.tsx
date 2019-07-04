@@ -49,15 +49,16 @@ class BuildPage extends React.Component {
             <div
               className={styles.contentBlock}
               style={props}
-              onFocus={() => this.setState({
-                currentVisibleTab: new Set([BuildPageTab.ConfigEditor, BuildPageTab.Preview]),
-              })}
-              onBlur={() => this.setState({
-                currentVisibleTab: new Set([BuildPageTab.ConfigEditor, BuildPageTab.Preview, BuildPageTab.CodeEditor]),
-              })}
             >
               <div className={styles.contentHeader}><div/><p>Config</p><div/></div>
-              <ConfigEditor />
+              <ConfigEditor
+                onFocus={() => this.setState({
+                  currentVisibleTab: new Set([BuildPageTab.ConfigEditor, BuildPageTab.Preview]),
+                })}
+                onBlur={() => this.setState({
+                  currentVisibleTab: new Set([BuildPageTab.ConfigEditor, BuildPageTab.Preview, BuildPageTab.CodeEditor]),
+                })}
+              />
             </div>
           )}
         </Spring>
@@ -90,7 +91,14 @@ class BuildPage extends React.Component {
               style={props}
             >
               <div className={styles.contentHeader}><div/><p>Code</p><div/></div>
-              <CodeEditor />
+              <CodeEditor
+                onFocus={() => this.setState({
+                  currentVisibleTab: new Set([BuildPageTab.CodeEditor]),
+                })}
+                onBlur={() => this.setState({
+                  currentVisibleTab: new Set([BuildPageTab.ConfigEditor, BuildPageTab.Preview, BuildPageTab.CodeEditor]),
+                })}
+              />
             </div>
           )}
         </Spring>

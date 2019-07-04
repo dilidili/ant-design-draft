@@ -18,6 +18,8 @@ interface ConfigEdtiorProps {
   editorState: EditorState,
   saveConfigCode: string,
   dispatch: Dispatch,
+  onFocus?: Function,
+  onBlur?: Function,
 }
 
 const MentionEntry = (props: { mention: Mention, theme: any }) => {
@@ -102,12 +104,14 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps> {
 
   renderEditor() {
     const { plugins, suggestions }: any = this.state;
-    const { editorState } = this.props;
+    const { editorState, onBlur, onFocus } = this.props;
     const { MentionSuggestions } = this.mentionPlugin;
 
     return (
       <div className={styles.editor}>
         <Editor
+          onFocus={onFocus}
+          onBlur={onBlur}
           editorState={editorState}
           onChange={this.onChange}
           plugins={plugins}
@@ -148,7 +152,7 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps> {
 
 export default connect(({ code, save }: ConnectState) => {
   return {
-    editorState: code.edtiorState,
+    editorState: code.editorState,
     saveConfigCode: save.configCode,
   }
 })(ConfigEditor);
