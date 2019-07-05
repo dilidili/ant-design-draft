@@ -269,6 +269,17 @@ const transformFormField = (fieldValue, entries, config = {}) => {
       entries.template = require('./templates/Form.hooks.mustache.js');
     } else {
       entries.template = require('./templates/Form.mustache.js');
+
+      if (config.useTypescript) {
+        entries.otherImports.push(`import { FormComponentProps } from 'antd/lib/form/Form'`)
+
+        entries.formTsWrapper = () => (text, render) => {
+          return `interface ${entries.componentType}Props extends FormComponentProps {\n`
+            + '}\n\n'
+            + render(text)
+            + `<${entries.componentType}Props>`;
+        }
+      }
     }
   }
 }
@@ -313,6 +324,23 @@ const transformFormInModalField = (fieldValue, entries, config = {}) => {
     entries.render.declares.push('  const { visible, onCancel, onCreate, wrappedComponentRef } = props;');
   } else {
     entries.render.declares.push('    const { visible, onCancel, onCreate, form } = this.props;');
+
+    if (config.useTypescript) {
+      const originalFormTsWrapper = entries.formTsWrapper;
+      entries.formTsProps = `<${entries.componentType}Props>`;
+
+      entries.formTsWrapper = () => (text, render) => {
+        let ret = originalFormTsWrapper()(text, render);
+        ret = ret.replace('extends FormComponentProps {\n', (
+          'extends FormComponentProps {\n'
+          + '  visible: boolean;\n'
+          + '  onCancel: (e: React.MouseEvent<any>) => void;\n'
+          + '  onCreate: (e: React.MouseEvent<any>) => void;\n'
+        ))
+
+        return ret;
+      }
+    }
   }
   entries.render.return.push(modalElement);
 
@@ -411,6 +439,7 @@ const renderElements = (children = [], indentNums, entries, renderEntries) => {
 const generate = (entries, config = {}) => {
   const {
     antdImports,
+    otherImports,
     handlers,
   } = entries;
 
@@ -424,7 +453,9 @@ const generate = (entries, config = {}) => {
     renderForm: {
       ...entries.renderForm,
       return: '',
-    }
+    },
+    formTsWrapper: entries.formTsWrapper,
+    formTsProps: entries.formTsProps || '',
   };
 
   if (antdImports && antdImports.size) {
@@ -437,6 +468,10 @@ const generate = (entries, config = {}) => {
     view.antdImports = null;
   }
 
+  if (otherImports && otherImports.length) {
+    view.antdImports = [view.antdImports].concat(otherImports).filter(v => !!v).join('\n');
+  }
+
   const renderReturnIndent = config.reactApi === 'Hooks' ? 4 : 6;
   if (entries.render.return && entries.render.return.length > 0) {
     view.render.return = renderElements(entries.render.return, renderReturnIndent, entries, entries.render).join('\n');
@@ -447,7 +482,7 @@ const generate = (entries, config = {}) => {
 
   const indent = config.reactApi === 'Hooks' ? '  ' : '    ';
 
-  // transform delareMap to list format
+  // transform declareMap to list format
   view.render.declareMap = Object.keys(view.render.declareMap).reduce((r, k) => {
     r.push(`const ${view.render.declareMap[k]} = ${k};`.split('\n').map(v => indent + v).join('\n'));
     return r;
@@ -463,6 +498,7 @@ const generate = (entries, config = {}) => {
 const transform = (schema = {}, config = {}) => {
   const entries = {
     antdImports: new Set(),
+    otherImports: [],
     handlers: [],
     render: {
       declareMap: {},
@@ -474,6 +510,7 @@ const transform = (schema = {}, config = {}) => {
       declares: [],
       return: [],
     },
+    formTsWrapper: () => (text, render) => render(text),
   };
 
   Object.keys(schema).forEach(key => {

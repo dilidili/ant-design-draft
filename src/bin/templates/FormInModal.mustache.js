@@ -3,7 +3,7 @@ module.exports = `import React from 'react';
 {{{antdImports}}}
 {{/antdImports}}
 
-class {{{componentType}}} extends React.Component {
+{{#formTsWrapper}}class {{{componentType}}} extends React.Component{{/formTsWrapper}} {
 {{#handlers}}
 {{{.}}}
 {{/handlers}}
@@ -32,7 +32,7 @@ class {{{componentType}}} extends React.Component {
     );
   }
 }
-const {{{componentType}}}Container = Form.create({ name: '{{{componentType}}}' })({{{componentType}}});
+const {{{componentType}}}Container = Form.create{{{formTsProps}}}({ name: '{{{componentType}}}' })({{{componentType}}});
 
 class {{{componentType}}}Button extends React.Component {
   state = {

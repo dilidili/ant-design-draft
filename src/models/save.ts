@@ -3,8 +3,9 @@ import { Action } from 'redux';
 import { ReactAPI } from '@/models/code';
 
 export interface SaveModelState {
-  configCode: string,
+  configCode: string;
   ReactAPI: ReactAPI;
+  useTypescript: boolean;
 }
 
 interface UpdateConfigCodeAction extends Action {
@@ -13,6 +14,10 @@ interface UpdateConfigCodeAction extends Action {
 
 interface UpdateReactAPIAction extends Action {
   payload: ReactAPI;
+}
+
+interface UpdateUseTypescriptAction extends Action {
+  payload: boolean;
 }
 
 export interface ModelType {
@@ -24,6 +29,7 @@ export interface ModelType {
   reducers: {
     updateConfigCode: Reducer<SaveModelState, UpdateConfigCodeAction>;
     updateReactAPI: Reducer<SaveModelState, UpdateReactAPIAction>;
+    updateUseTypescript: Reducer<SaveModelState, UpdateUseTypescriptAction>;
   };
 }
 
@@ -33,6 +39,7 @@ const Model: ModelType = {
   state: {
     configCode: '',
     ReactAPI: ReactAPI.Component,
+    useTypescript: true,
   },
 
   effects: {
@@ -64,6 +71,13 @@ const Model: ModelType = {
       return {
         ...state,
         ReactAPI: payload,
+      };
+    },
+
+    updateUseTypescript(state: SaveModelState, { payload }: UpdateUseTypescriptAction) {
+      return {
+        ...state,
+        useTypescript: payload,
       };
     },
   },

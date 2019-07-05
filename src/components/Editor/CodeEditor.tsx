@@ -9,7 +9,7 @@ import Prism from 'prismjs';
 import Editor from 'draft-js-plugins-editor';
 import { Dispatch } from 'redux';
 import CopyButton from '../Button/CopyButton';
-import { Popover, Icon, Select } from 'antd';
+import { Popover, Icon, Select, Switch } from 'antd';
 import { ReactAPI } from '@/models/code';
 
 interface ConfigEdtiorProps {
@@ -68,7 +68,7 @@ class CodeEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState> {
   }
 
   renderSettingButton() {
-    const { reactAPISetting, dispatch } = this.props;
+    const { reactAPISetting, dispatch, useTypescript } = this.props;
     const { settingVisible } = this.state;
 
     const content = (
@@ -92,6 +92,20 @@ class CodeEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState> {
             <Select.Option value={ReactAPI.Component}>Component-Based</Select.Option>
             <Select.Option value={ReactAPI.Hooks}>React hooks</Select.Option>
           </Select>
+        </div>
+
+        {/* Typescript */}
+        <div className={styles.settingContent}>
+          <div className={styles.settingContentLabel}>Typescript:</div>
+          <Switch
+            checkedChildren={<Icon type="check" />}
+            unCheckedChildren={<Icon type="close" />}
+            checked={useTypescript}
+            onChange={(checked) => dispatch({
+              type: 'save/updateUseTypescript',
+              payload: checked,
+            })}
+          />
         </div>
       </div>
     );
@@ -147,5 +161,6 @@ export default connect(({ code, save }: ConnectState) => {
   return {
     generatedCode: code.generatedCode,
     reactAPISetting: save.ReactAPI,
+    useTypescript: save.useTypescript,
   }
 })(CodeEditor);

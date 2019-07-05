@@ -327,6 +327,13 @@ describe('Transform: form in modal', () => {
     // fs.writeFileSync(path.join(__dirname, '../../pages/examples/form.tsx'), content, 'utf8');
   });
 
+  it.only('transform correctly in typescript mode', () => {
+    const content = transformSchema(schema, { useTypescript: true });
+
+    // expect(content).toEqual(output);
+    fs.writeFileSync(path.join(__dirname, '../../pages/examples/form.tsx'), content, 'utf8');
+  });
+
   it(`transform in hooks mode`, () => {
     const content = transformSchema(schema, { reactApi: 'Hooks' });
 
