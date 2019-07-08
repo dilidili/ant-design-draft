@@ -159,6 +159,8 @@ class CollectionCreateFormButton extends React.Component {
   };
 
   handleCreate = () => {
+    if (!this.formRef) return;
+
     const form = this.formRef.props.form;
     form.validateFields((err, values) => {
       if (err) {
@@ -249,9 +251,220 @@ const CollectionCreateFormModal = (props) => {
   );
 }
 
-const CollectionCreateFormButton = (props) => {
+const CollectionCreateFormButton = () => {
   const [ visible, setVisible ] = useState(false);
   const inputRef = useRef();
+
+  const handleCreate = () => {
+    if (!inputRef.current) return;
+
+    const form = inputRef.current.form;
+    form.validateFields((err, values) => {
+      if (err) {
+        return;
+      }
+
+      console.log('Received values of form: ', values);
+      form.resetFields();
+      setVisible(false);
+    });
+  };
+
+  return (
+    <div>
+      <Button type="primary" onClick={() => setVisible(true)}>
+        New Collection
+      </Button>
+      <CollectionCreateFormModal
+        wrappedComponentRef={inputRef}
+        visible={visible}
+        onCancel={() => setVisible(false)}
+        onCreate={handleCreate}
+      />
+    </div>
+  );
+};
+
+export default CollectionCreateFormButton;`
+
+const typescriptOutput = `import React from 'react';
+import { Input, Radio, Form, Button, Modal } from 'antd';
+import { FormComponentProps } from 'antd/lib/form/Form'
+
+interface CollectionCreateFormProps extends FormComponentProps {
+  visible: boolean;
+  onCancel: (e: React.MouseEvent<any>) => void;
+  onCreate: (e: React.MouseEvent<any>) => void;
+}
+
+class CollectionCreateForm extends React.Component<CollectionCreateFormProps> {
+
+  renderForm() {
+    const { getFieldDecorator } = this.props.form;
+    return (
+      <Form layout="vertical">
+        <Form.Item label="Title">
+          {getFieldDecorator('title', {
+            rules: [{ required: true, message: 'Please input your title!' }],
+          })(
+            <Input />
+          )}
+        </Form.Item>
+        <Form.Item label="Description">
+          {getFieldDecorator('description', {
+            rules: [{ required: true, message: 'Please input your description!' }],
+          })(
+            <Input type="textarea" />
+          )}
+        </Form.Item>
+        <Form.Item>
+          {getFieldDecorator('modifier', {
+            rules: [],
+          })(
+            <Radio.Group>
+              <Radio value="public">
+                Public
+              </Radio>
+              <Radio value="private">
+                Private
+              </Radio>
+            </Radio.Group>
+          )}
+        </Form.Item>
+      </Form>
+    );
+  }
+
+  render() {
+    const { visible, onCancel, onCreate, form } = this.props;
+    return (
+      <Modal visible={visible} onCancel={onCancel} onOk={onCreate} title="title" okText="okText">
+        {this.renderForm()}
+      </Modal>
+    );
+  }
+}
+const CollectionCreateFormContainer = Form.create<CollectionCreateFormProps>({ name: 'CollectionCreateForm' })(CollectionCreateForm);
+
+class CollectionCreateFormButton extends React.Component {
+  state = {
+    visible: false,
+  };
+  
+  formRef?: CollectionCreateForm;
+
+  showModal = () => {
+    this.setState({ visible: true });
+  };
+
+  handleCancel = () => {
+    this.setState({ visible: false });
+  };
+
+  handleCreate = () => {
+    if (!this.formRef) return;
+
+    const form = this.formRef.props.form;
+    form.validateFields((err, values) => {
+      if (err) {
+        return;
+      }
+
+      console.log('Received values of form: ', values);
+      form.resetFields();
+      this.setState({ visible: false });
+    });
+  };
+
+  saveFormRef = (formRef?: CollectionCreateForm) => {
+    this.formRef = formRef;
+  };
+
+  render() {
+    const { visible } = this.state;
+
+    return (
+      <div>
+        <Button type="primary" onClick={this.showModal}>
+          New Collection
+        </Button>
+        <CollectionCreateFormContainer
+          wrappedComponentRef={this.saveFormRef}
+          visible={visible}
+          onCancel={this.handleCancel}
+          onCreate={this.handleCreate}
+        />
+      </div>
+    );
+  }
+}
+
+export default CollectionCreateFormButton;`
+
+const typescriptHooksOutput = `import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
+import { Input, Radio, Form, Button, Modal } from 'antd';
+import { FormComponentProps } from 'antd/lib/form/Form'
+
+const CollectionCreateForm = forwardRef((props: FormComponentProps, ref) => {
+  useImperativeHandle(ref, () => ({
+    form: props.form,
+  }));
+  const { getFieldDecorator } = props.form;
+  return (
+    <Form layout="vertical">
+      <Form.Item label="Title">
+        {getFieldDecorator('title', {
+          rules: [{ required: true, message: 'Please input your title!' }],
+        })(
+          <Input />
+        )}
+      </Form.Item>
+      <Form.Item label="Description">
+        {getFieldDecorator('description', {
+          rules: [{ required: true, message: 'Please input your description!' }],
+        })(
+          <Input type="textarea" />
+        )}
+      </Form.Item>
+      <Form.Item>
+        {getFieldDecorator('modifier', {
+          rules: [],
+        })(
+          <Radio.Group>
+            <Radio value="public">
+              Public
+            </Radio>
+            <Radio value="private">
+              Private
+            </Radio>
+          </Radio.Group>
+        )}
+      </Form.Item>
+    </Form>
+  );
+});
+
+const WrappedCollectionCreateForm = Form.create({ name: 'CollectionCreateForm' })(CollectionCreateForm);
+
+interface CollectionCreateFormModalProps {
+  visible: boolean;
+  onCancel: (e: React.MouseEvent<any>) => void;
+  onCreate: (e: React.MouseEvent<any>) => void;
+  wrappedComponentRef: any;
+}
+
+const CollectionCreateFormModal = (props: CollectionCreateFormModalProps) => {
+  const { visible, onCancel, onCreate, wrappedComponentRef } = props;
+  return (
+    <Modal visible={visible} onCancel={onCancel} onOk={onCreate} title="title" okText="okText">
+      <WrappedCollectionCreateForm wrappedComponentRef={wrappedComponentRef} />
+    </Modal>
+  );
+}
+
+const CollectionCreateFormButton = () => {
+  const [ visible, setVisible ] = useState(false);
+  const inputRef = useRef<FormComponentProps>();
 
   const handleCreate = () => {
     if (!inputRef.current) return;
@@ -327,17 +540,24 @@ describe('Transform: form in modal', () => {
     // fs.writeFileSync(path.join(__dirname, '../../pages/examples/form.tsx'), content, 'utf8');
   });
 
-  it.only('transform correctly in typescript mode', () => {
+  it('transform correctly in typescript mode', () => {
     const content = transformSchema(schema, { useTypescript: true });
 
-    // expect(content).toEqual(output);
-    fs.writeFileSync(path.join(__dirname, '../../pages/examples/form.tsx'), content, 'utf8');
+    expect(content).toEqual(typescriptOutput);
+    // fs.writeFileSync(path.join(__dirname, '../../pages/examples/form.tsx'), content, 'utf8');
   });
 
   it(`transform in hooks mode`, () => {
     const content = transformSchema(schema, { reactApi: 'Hooks' });
 
     expect(content).toEqual(hooksOutput);
+    // fs.writeFileSync(path.join(__dirname, '../../pages/examples/form.tsx'), content, 'utf8');
+  })
+
+  it(`transform in hooks and typescript mode`, () => {
+    const content = transformSchema(schema, { reactApi: 'Hooks', useTypescript: true });
+
+    expect(content).toEqual(typescriptHooksOutput);
     // fs.writeFileSync(path.join(__dirname, '../../pages/examples/form.tsx'), content, 'utf8');
   })
 });

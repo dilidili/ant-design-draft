@@ -3,7 +3,7 @@ module.exports = `import React, { useState, useRef, useImperativeHandle, forward
 {{{antdImports}}}
 {{/antdImports}}
 
-const {{{componentType}}} = forwardRef((props, ref) => {
+{{#formTsWrapper}}const {{{componentType}}} = forwardRef((props{{/formTsWrapper}}, ref) => {
   useImperativeHandle(ref, () => ({
     form: props.form,
   }));
@@ -18,7 +18,7 @@ const {{{componentType}}} = forwardRef((props, ref) => {
   );
 });
 
-const Wrapped{{{componentType}}} = Form.create({ name: '{{{componentType}}}' })({{{componentType}}});
+const Wrapped{{{componentType}}} = Form.create{{{formTsProps}}}({ name: '{{{componentType}}}' })({{{componentType}}});
 
 const {{{componentType}}}Modal = (props) => {
 {{#handlers}}
@@ -35,7 +35,7 @@ const {{{componentType}}}Modal = (props) => {
   );
 }
 
-const {{{componentType}}}Button = (props) => {
+const {{{componentType}}}Button = () => {
   const [ visible, setVisible ] = useState(false);
   const inputRef = useRef();
 

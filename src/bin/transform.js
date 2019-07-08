@@ -267,6 +267,15 @@ const transformFormField = (fieldValue, entries, config = {}) => {
   } else {
     if (config.reactApi === 'Hooks') {
       entries.template = require('./templates/Form.hooks.mustache.js');
+
+      if (config.useTypescript) {
+        entries.otherImports.push(`import { FormComponentProps } from 'antd/lib/form/Form'`)
+
+        entries.formTsWrapper = () => (text, render) => {
+          return render(text)
+            + `: FormComponentProps`;
+        }
+      }
     } else {
       entries.template = require('./templates/Form.mustache.js');
 
@@ -492,8 +501,43 @@ const generate = (entries, config = {}) => {
     return r;
   }, []);
 
-  return Mustache.render(entries.template, view);
+  let ret = Mustache.render(entries.template, view);
+  ret = postGenerate(ret, view, config);
+  return ret;
 };
+
+const postGenerate = (code, view, config) => {
+  if (config.useTypescript) {
+    // form in modal
+    if (config.reactApi === 'Hooks') {
+      code = code.replace(`const ${view.componentType}Modal = (props) => {`,
+        `interface ${view.componentType}ModalProps {
+  visible: boolean;
+  onCancel: (e: React.MouseEvent<any>) => void;
+  onCreate: (e: React.MouseEvent<any>) => void;
+  wrappedComponentRef: any;
+}
+
+const ${view.componentType}Modal = (props: ${view.componentType}ModalProps) => {`
+      )
+
+      code = code.replace('const inputRef = useRef();', 'const inputRef = useRef<FormComponentProps>();')
+    } else {
+      code = code.replace(`class ${view.componentType}Button extends React.Component {
+  state = {
+    visible: false,
+  };`, `class ${view.componentType}Button extends React.Component {
+  state = {
+    visible: false,
+  };
+  
+  formRef?: ${view.componentType};`)
+      code = code.replace('saveFormRef = formRef => {', 'saveFormRef = (formRef?: CollectionCreateForm) => {')
+    }
+  }
+
+  return code;
+}
 
 const transform = (schema = {}, config = {}) => {
   const entries = {

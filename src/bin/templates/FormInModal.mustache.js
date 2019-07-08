@@ -48,6 +48,8 @@ class {{{componentType}}}Button extends React.Component {
   };
 
   handleCreate = () => {
+    if (!this.formRef) return;
+
     const form = this.formRef.props.form;
     form.validateFields((err, values) => {
       if (err) {
