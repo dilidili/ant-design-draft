@@ -520,8 +520,8 @@ const postGenerate = (code, view, config) => {
 
 const ${view.componentType}Modal = (props: ${view.componentType}ModalProps) => {`
       )
-
       code = code.replace('const inputRef = useRef();', 'const inputRef = useRef<FormComponentProps>();')
+      code = code.replace('const handleSubmit = e => {', 'const handleSubmit = (e: React.MouseEvent<any>) => {')
     } else {
       code = code.replace(`class ${view.componentType}Button extends React.Component {
   state = {
@@ -533,6 +533,7 @@ const ${view.componentType}Modal = (props: ${view.componentType}ModalProps) => {
   
   formRef?: ${view.componentType};`)
       code = code.replace('saveFormRef = formRef => {', 'saveFormRef = (formRef?: CollectionCreateForm) => {')
+      code = code.replace('handleSubmit = e => {', 'handleSubmit = (e: React.MouseEvent<any>) => {')
     }
   }
 

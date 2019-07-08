@@ -3,7 +3,7 @@ module.exports = `import React from 'react';
 {{{antdImports}}}
 {{/antdImports}}
 
-const {{{componentType}}} = (props) => {
+{{#formTsWrapper}}const {{{componentType}}} = (props{{/formTsWrapper}}) => {
 {{#renderForm.declares}}
 {{{.}}}
 {{/renderForm.declares}}

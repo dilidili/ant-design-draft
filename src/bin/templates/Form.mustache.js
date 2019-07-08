@@ -3,7 +3,7 @@ module.exports = `import React from 'react';
 {{{antdImports}}}
 {{/antdImports}}
 
-class {{{componentType}}} extends React.Component {
+{{#formTsWrapper}}class {{{componentType}}} extends React.Component{{/formTsWrapper}} {
 {{#handlers}}
 {{{.}}}
 {{/handlers}}

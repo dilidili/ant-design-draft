@@ -154,6 +154,99 @@ const WrappedHorizontalLoginForm = Form.create({ name: 'HorizontalLoginForm' })(
 
 export default WrappedHorizontalLoginForm;`
 
+const typescriptOutput = `import React from 'react';
+import { Input, Button, Form } from 'antd';
+import { FormComponentProps } from 'antd/lib/form/Form'
+
+interface HorizontalLoginFormProps extends FormComponentProps {
+}
+
+class HorizontalLoginForm extends React.Component<HorizontalLoginFormProps> {
+
+  handleSubmit = (e: React.MouseEvent<any>) => {
+    e.preventDefault();
+    this.props.form.validateFields((err, values) => {
+      if (!err) {
+        console.log('Received values of form: ', values);
+      }
+    });
+  };
+
+  render() {
+    const { getFieldDecorator } = this.props.form;
+    return (
+      <Form layout="inline" onSubmit={this.handleSubmit}>
+        <Form.Item>
+          {getFieldDecorator('username', {
+            rules: [{ required: true, message: 'Please input your username!' }],
+          })(
+            <Input />
+          )}
+        </Form.Item>
+        <Form.Item>
+          {getFieldDecorator('password', {
+            rules: [{ required: true, message: 'Please input your password!' }],
+          })(
+            <Input type="password" />
+          )}
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" htmlType="submit">
+            Log in
+          </Button>
+        </Form.Item>
+      </Form>
+    );
+  }
+}
+
+const WrappedHorizontalLoginForm = Form.create({ name: 'HorizontalLoginForm' })(HorizontalLoginForm);
+export default WrappedHorizontalLoginForm;`;
+
+const typescriptHooksOutput = `import React from 'react';
+import { Input, Button, Form } from 'antd';
+import { FormComponentProps } from 'antd/lib/form/Form'
+
+const HorizontalLoginForm = (props: FormComponentProps) => {
+  const { getFieldDecorator } = props.form;
+  const handleSubmit = (e: React.MouseEvent<any>) => {
+    e.preventDefault();
+    props.form.validateFields((err, values) => {
+      if (!err) {
+        console.log('Received values of form: ', values);
+      }
+    });
+  };
+
+  return (
+    <Form layout="inline" onSubmit={handleSubmit}>
+      <Form.Item>
+        {getFieldDecorator('username', {
+          rules: [{ required: true, message: 'Please input your username!' }],
+        })(
+          <Input />
+        )}
+      </Form.Item>
+      <Form.Item>
+        {getFieldDecorator('password', {
+          rules: [{ required: true, message: 'Please input your password!' }],
+        })(
+          <Input type="password" />
+        )}
+      </Form.Item>
+      <Form.Item>
+        <Button type="primary" htmlType="submit">
+          Log in
+        </Button>
+      </Form.Item>
+    </Form>
+  );
+};
+
+const WrappedHorizontalLoginForm = Form.create({ name: 'HorizontalLoginForm' })(HorizontalLoginForm);
+
+export default WrappedHorizontalLoginForm;`;
+
 const schema = {
   name: 'HorizontalLoginForm',
 
@@ -203,10 +296,24 @@ describe('Transform: horizontal login form', () => {
     // fs.writeFileSync(path.join(__dirname, '../../pages/examples/form.tsx'), content, 'utf8');
   });
 
+  it('transform correctly in typescript mode', () => {
+    const content = transformSchema(schema, { useTypescript: true });
+
+    expect(content).toEqual(typescriptOutput);
+    // fs.writeFileSync(path.join(__dirname, '../../pages/examples/form.tsx'), content, 'utf8');
+  });
+
   it(`transform in hooks mode`, () => {
     const content = transformSchema(schema, { reactApi: 'Hooks' });
 
     expect(content).toEqual(hooksOutput);
+    // fs.writeFileSync(path.join(__dirname, '../../pages/examples/form.tsx'), content, 'utf8');
+  })
+
+  it(`transform in hooks and typescript mode`, () => {
+    const content = transformSchema(schema, { reactApi: 'Hooks', useTypescript: true });
+
+    expect(content).toEqual(typescriptHooksOutput);
     // fs.writeFileSync(path.join(__dirname, '../../pages/examples/form.tsx'), content, 'utf8');
   })
 });
