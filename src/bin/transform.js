@@ -530,11 +530,13 @@ const ${view.componentType}Modal = (props: ${view.componentType}ModalProps) => {
   state = {
     visible: false,
   };
-  
+
   formRef?: ${view.componentType};`)
       code = code.replace('saveFormRef = formRef => {', 'saveFormRef = (formRef?: CollectionCreateForm) => {')
       code = code.replace('handleSubmit = e => {', 'handleSubmit = (e: React.MouseEvent<any>) => {')
     }
+
+    code = code.replace('(rule, value, callback)', '(rule: any, value: any, callback: any)')
   }
 
   return code;
