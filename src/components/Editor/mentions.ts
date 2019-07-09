@@ -6,6 +6,17 @@ export type Mention = {
 }
 
 const mentions: Array<Mention> = [{
+    shortname: 'Divider',
+    title: '----- text -----',
+    name: `{
+        type: 'Divider',
+        props: {
+          children: 'Text',
+        }
+      },`,
+    insertAsText: true,
+  },
+  {
     shortname: 'Row',
     title: 'FormItem |gutter| FormItem',
     name: `{
@@ -63,6 +74,6 @@ const mentions: Array<Mention> = [{
       },`,
     insertAsText: true,
   },
-];
+].sort((a, b) => a.shortname.localeCompare(b.shortname));
 
 export default mentions;

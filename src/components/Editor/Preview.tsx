@@ -3,6 +3,9 @@ import { connect } from 'dva';
 import { ConnectState } from '@/models/connect.d';
 import styles from './Preview.less';
 
+// import stylesheets for preview components.
+import { Divider } from 'antd';
+
 (window as any).React = React;
 (window as any).AntD = require('antd');
 

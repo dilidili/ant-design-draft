@@ -67,7 +67,7 @@ const fs = require('fs');
 // ReactDOM.render(<WrappedHorizontalLoginForm />, mountNode);
 
 const output = `import React from 'react';
-import { Input, Button, Form } from 'antd';
+import { Input, Divider, Button, Form } from 'antd';
 
 class HorizontalLoginForm extends React.Component {
 
@@ -98,6 +98,9 @@ class HorizontalLoginForm extends React.Component {
             <Input type="password" />
           )}
         </Form.Item>
+        <Divider>
+          Text
+        </Divider>
         <Form.Item>
           <Button type="primary" htmlType="submit">
             Log in
@@ -112,7 +115,7 @@ const WrappedHorizontalLoginForm = Form.create({ name: 'HorizontalLoginForm' })(
 export default WrappedHorizontalLoginForm;`
 
 const hooksOutput = `import React from 'react';
-import { Input, Button, Form } from 'antd';
+import { Input, Divider, Button, Form } from 'antd';
 
 const HorizontalLoginForm = (props) => {
   const { getFieldDecorator } = props.form;
@@ -141,6 +144,9 @@ const HorizontalLoginForm = (props) => {
           <Input type="password" />
         )}
       </Form.Item>
+      <Divider>
+        Text
+      </Divider>
       <Form.Item>
         <Button type="primary" htmlType="submit">
           Log in
@@ -155,7 +161,7 @@ const WrappedHorizontalLoginForm = Form.create({ name: 'HorizontalLoginForm' })(
 export default WrappedHorizontalLoginForm;`
 
 const typescriptOutput = `import React from 'react';
-import { Input, Button, Form } from 'antd';
+import { Input, Divider, Button, Form } from 'antd';
 import { FormComponentProps } from 'antd/lib/form/Form'
 
 interface HorizontalLoginFormProps extends FormComponentProps {
@@ -190,6 +196,9 @@ class HorizontalLoginForm extends React.Component<HorizontalLoginFormProps> {
             <Input type="password" />
           )}
         </Form.Item>
+        <Divider>
+          Text
+        </Divider>
         <Form.Item>
           <Button type="primary" htmlType="submit">
             Log in
@@ -204,7 +213,7 @@ const WrappedHorizontalLoginForm = Form.create({ name: 'HorizontalLoginForm' })(
 export default WrappedHorizontalLoginForm;`;
 
 const typescriptHooksOutput = `import React from 'react';
-import { Input, Button, Form } from 'antd';
+import { Input, Divider, Button, Form } from 'antd';
 import { FormComponentProps } from 'antd/lib/form/Form'
 
 const HorizontalLoginForm = (props: FormComponentProps) => {
@@ -234,6 +243,9 @@ const HorizontalLoginForm = (props: FormComponentProps) => {
           <Input type="password" />
         )}
       </Form.Item>
+      <Divider>
+        Text
+      </Divider>
       <Form.Item>
         <Button type="primary" htmlType="submit">
           Log in
@@ -274,7 +286,12 @@ const schema = {
           type: 'password',
         },
       },
-
+      {
+        type: 'Divider',
+        props: {
+          children: 'Text',
+        }
+      },
       // login button
       {
         type: 'Button',

@@ -350,7 +350,7 @@ class CollectionCreateFormButton extends React.Component {
   state = {
     visible: false,
   };
-  
+
   formRef?: CollectionCreateForm;
 
   showModal = () => {

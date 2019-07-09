@@ -1,43 +1,47 @@
 import React from 'react';
-import { Input, Button, Form } from 'antd';
-import { FormComponentProps } from 'antd/lib/form/Form'
+import { Input, Divider, Button, Form } from 'antd';
 
-const HorizontalLoginForm = (props: FormComponentProps) => {
-  const { getFieldDecorator } = props.form;
-  const handleSubmit = (e: React.MouseEvent<any>) => {
+class HorizontalLoginForm extends React.Component {
+
+  handleSubmit = e => {
     e.preventDefault();
-    props.form.validateFields((err, values) => {
+    this.props.form.validateFields((err, values) => {
       if (!err) {
         console.log('Received values of form: ', values);
       }
     });
   };
 
-  return (
-    <Form layout="inline" onSubmit={handleSubmit}>
-      <Form.Item>
-        {getFieldDecorator('username', {
-          rules: [{ required: true, message: 'Please input your username!' }],
-        })(
-          <Input />
-        )}
-      </Form.Item>
-      <Form.Item>
-        {getFieldDecorator('password', {
-          rules: [{ required: true, message: 'Please input your password!' }],
-        })(
-          <Input type="password" />
-        )}
-      </Form.Item>
-      <Form.Item>
-        <Button type="primary" htmlType="submit">
-          Log in
-        </Button>
-      </Form.Item>
-    </Form>
-  );
-};
+  render() {
+    const { getFieldDecorator } = this.props.form;
+    return (
+      <Form layout="inline" onSubmit={this.handleSubmit}>
+        <Form.Item>
+          {getFieldDecorator('username', {
+            rules: [{ required: true, message: 'Please input your username!' }],
+          })(
+            <Input />
+          )}
+        </Form.Item>
+        <Form.Item>
+          {getFieldDecorator('password', {
+            rules: [{ required: true, message: 'Please input your password!' }],
+          })(
+            <Input type="password" />
+          )}
+        </Form.Item>
+        <Divider>
+          Text
+        </Divider>
+        <Form.Item>
+          <Button type="primary" htmlType="submit">
+            Log in
+          </Button>
+        </Form.Item>
+      </Form>
+    );
+  }
+}
 
 const WrappedHorizontalLoginForm = Form.create({ name: 'HorizontalLoginForm' })(HorizontalLoginForm);
-
 export default WrappedHorizontalLoginForm;

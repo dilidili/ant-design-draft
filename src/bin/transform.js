@@ -37,6 +37,16 @@ const getFormItemElement = (formItem, entries, formProps, config) => {
     }
   }
 
+  if (formItem.type === 'Divider') {
+    const { type, props } = formItem;
+    entries.antdImports.add('Divider');
+
+    return {
+      type: type,
+      props: props || {},
+    }
+  }
+
   // support array as element of items
   let formItemList = formItem;
   if (!Array.isArray(formItem)) {
