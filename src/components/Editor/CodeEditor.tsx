@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { MouseEventHandler } from 'react';
 import styles from './CodeEditor.less';
 import createCodeEditorPlugin from '@/utils/draft-js-code-editor-plugin';
 import createPrismPlugin from '@/utils/draft-js-prism-plugin';
@@ -11,13 +11,15 @@ import { Dispatch } from 'redux';
 import CopyButton from '../Button/CopyButton';
 import { Popover, Icon, Select, Switch } from 'antd';
 import { ReactAPI } from '@/models/code';
+import enhanceWithClickOutside from 'react-click-outside';
 
 interface ConfigEdtiorProps {
   dispatch: Dispatch,
   generatedCode: EditorState,
   reactAPISetting: ReactAPI,
-  onFocus?: Function,
-  onBlur?: Function,
+  useTypescript: boolean,
+  onFocus?: MouseEventHandler,
+  onBlur?: MouseEventHandler,
 }
 
 interface ConfigEdtiorState {
@@ -50,9 +52,15 @@ class CodeEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState> {
     });
   }
 
+  handleClickOutside: MouseEventHandler = (evt) => {
+    const { onBlur } = this.props;
+
+    onBlur && onBlur(evt);
+  }
+
   renderEditor() {
     const { plugins }: any = this.state;
-    const { generatedCode, onFocus, onBlur } = this.props;
+    const { generatedCode } = this.props;
 
     return (
       <div className={styles.editor}>
@@ -60,8 +68,6 @@ class CodeEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState> {
           editorState={generatedCode}
           plugins={plugins}
           onChange={this.onChange}
-          onFocus={onFocus}
-          onBlur={onBlur}
         />
       </div>
     )
@@ -124,18 +130,19 @@ class CodeEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState> {
           });
         }}
       >
-        <Icon type="setting" className={styles.settingButton}/>
+        <Icon type="setting" className={styles.settingButton} />
       </Popover>
     )
   }
 
   render() {
     const { generatedCode } = this.props;
+    const { onFocus } = this.props;
 
     return (
-      <div className={styles.container}>
+      <div className={styles.container} onClick={onFocus}>
         {/* header */}
-        <div className={styles.header}>
+        <div className={styles.header} onClick={(evt) => evt.stopPropagation()}>
           <div className={styles.icons}>
             <span className={styles.close} />
             <span className={styles.minimize} />
@@ -163,4 +170,4 @@ export default connect(({ code, save }: ConnectState) => {
     reactAPISetting: save.ReactAPI,
     useTypescript: save.useTypescript,
   }
-})(CodeEditor);
+})(enhanceWithClickOutside(CodeEditor));

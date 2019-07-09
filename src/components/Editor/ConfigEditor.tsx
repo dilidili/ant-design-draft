@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { MouseEventHandler } from 'react';
 import styles from './ConfigEditor.less';
 import createCodeEditorPlugin from '@/utils/draft-js-code-editor-plugin';
 import createPrismPlugin from '@/utils/draft-js-prism-plugin';
@@ -13,13 +13,14 @@ import Prism from 'prismjs';
 import Editor from 'draft-js-plugins-editor';
 import { Tooltip, Icon } from 'antd';
 import mentions, { Mention } from './mentions';
+import enhanceWithClickOutside from 'react-click-outside';
 
 interface ConfigEdtiorProps {
   editorState: EditorState,
   saveConfigCode: string,
   dispatch: Dispatch,
-  onFocus?: Function,
-  onBlur?: Function,
+  onFocus?: MouseEventHandler,
+  onBlur?: MouseEventHandler,
 }
 
 const MentionEntry = (props: { mention: Mention, theme: any }) => {
@@ -88,13 +89,19 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps> {
     });
   }
 
+  handleClickOutside: MouseEventHandler = (evt) => {
+    const { onBlur } = this.props;
+
+    onBlur && onBlur(evt);
+  }
+
   onMentionSearchChange = ({ value }: { value: string }) => {
     this.setState({
       suggestions: defaultSuggestionsFilter(value, mentions),
     })
   }
 
-  handleResetContent = () => {
+  handleResetContent: MouseEventHandler = () => {
     const { dispatch } = this.props;
 
     dispatch({
@@ -104,14 +111,12 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps> {
 
   renderEditor() {
     const { plugins, suggestions }: any = this.state;
-    const { editorState, onBlur, onFocus } = this.props;
+    const { editorState } = this.props;
     const { MentionSuggestions } = this.mentionPlugin;
 
     return (
       <div className={styles.editor}>
         <Editor
-          onFocus={onFocus}
-          onBlur={onBlur}
           editorState={editorState}
           onChange={this.onChange}
           plugins={plugins}
@@ -126,10 +131,12 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps> {
   }
 
   render() {
+    const { onFocus } = this.props;
+
     return (
-      <div className={styles.container}>
+      <div className={styles.container} onClick={onFocus}>
         {/* header */}
-        <div className={styles.header}>
+        <div className={styles.header} onClick={(evt) => evt.stopPropagation()}>
           <div className={styles.icons}>
             <span className={styles.close} />
             <span className={styles.minimize} />
@@ -155,4 +162,4 @@ export default connect(({ code, save }: ConnectState) => {
     editorState: code.editorState,
     saveConfigCode: save.configCode,
   }
-})(ConfigEditor);
+})(enhanceWithClickOutside(ConfigEditor));

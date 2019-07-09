@@ -39,11 +39,12 @@ class BuildPage extends React.Component {
     return (
       <div className={styles.content}>
         {/* config input */}
-        <Spring
+        <Spring<{ height?: string, overflow?: string, opacity: number, width: string }>
           to={{
             opacity: currentVisibleTab.has(BuildPageTab.ConfigEditor) ? 1 : 0,
             width: currentVisibleTab.has(BuildPageTab.ConfigEditor) ? widthPerTab : '0%',
           }}
+          after={!currentVisibleTab.has(BuildPageTab.ConfigEditor) ? { height: '0px', overflow: 'hidden' } : {}}
         >
           {props => (
             <div
@@ -55,7 +56,7 @@ class BuildPage extends React.Component {
                 onFocus={() => this.setState({
                   currentVisibleTab: new Set([BuildPageTab.ConfigEditor, BuildPageTab.Preview]),
                 })}
-                onBlur={() => this.setState({
+                onBlur={() => currentVisibleTab.has(BuildPageTab.ConfigEditor) && this.setState({
                   currentVisibleTab: new Set([BuildPageTab.ConfigEditor, BuildPageTab.Preview, BuildPageTab.CodeEditor]),
                 })}
               />
@@ -64,11 +65,12 @@ class BuildPage extends React.Component {
         </Spring>
 
         {/* preview */}
-        <Spring
+        <Spring<{ height?: string, overflow?: string, opacity: number, width: string }>
           to={{
             opacity: currentVisibleTab.has(BuildPageTab.Preview) ? 1 : 0,
             width: currentVisibleTab.has(BuildPageTab.Preview) ? widthPerTab : '0%',
           }}
+          after={!currentVisibleTab.has(BuildPageTab.Preview) ? { height: '0px', overflow: 'hidden' } : {}}
         >
           {props => (
             <div className={styles.contentBlock} style={props}>
@@ -79,11 +81,12 @@ class BuildPage extends React.Component {
         </Spring>
 
         {/* code */}
-        <Spring
+        <Spring<{ height?: string, overflow?: string, opacity: number, width: string }>
           to={{
             opacity: currentVisibleTab.has(BuildPageTab.CodeEditor) ? 1 : 0,
             width: currentVisibleTab.has(BuildPageTab.CodeEditor) ? widthPerTab : '0%',
           }}
+          after={!currentVisibleTab.has(BuildPageTab.CodeEditor) ? { height: '0px', overflow: 'hidden' } : {}}
         >
           {props => (
             <div
@@ -95,7 +98,7 @@ class BuildPage extends React.Component {
                 onFocus={() => this.setState({
                   currentVisibleTab: new Set([BuildPageTab.CodeEditor]),
                 })}
-                onBlur={() => this.setState({
+                onBlur={() => currentVisibleTab.has(BuildPageTab.CodeEditor) && this.setState({
                   currentVisibleTab: new Set([BuildPageTab.ConfigEditor, BuildPageTab.Preview, BuildPageTab.CodeEditor]),
                 })}
               />

@@ -104,6 +104,7 @@ const Model: ModelType = {
           if (debounced) {
             const configText = action.payload.getCurrentContent().getPlainText();
             const reactApi = yield select((state) => state.save.ReactAPI);
+            const useTypescript = yield select((state) => state.save.useTypescript);
 
             try {
               const configCode = transform(configText, {
@@ -111,7 +112,7 @@ const Model: ModelType = {
               }).code + '; schema';
 
               // generated code
-              const generatedCode = transformSchema(eval(configCode), { reactApi, });
+              const generatedCode = transformSchema(eval(configCode), { reactApi, useTypescript });
               yield put({
                 type: 'updateGeneratedCode',
                 payload: generatedCode,

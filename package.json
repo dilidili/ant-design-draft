@@ -26,6 +26,7 @@
     "mustache": "^3.0.1",
     "prismjs": "^1.16.0",
     "react": "^16.8.6",
+    "react-click-outside": "^3.0.1",
     "react-copy-to-clipboard": "^5.0.1",
     "react-dom": "^16.8.6",
     "react-spring": "^8.0.25",
