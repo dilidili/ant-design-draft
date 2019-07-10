@@ -1,0 +1,6 @@
+# production
+/dist
+
+# umi
+.umi
+.umi-production

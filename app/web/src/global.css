@@ -7,6 +7,6 @@ body {
   margin: 0;
 }
 
-.DraftEditor-root {
+:global(.DraftEditor-root) {
   word-spacing: 5px;
 }

@@ -8,7 +8,7 @@
 /package-lock.json
 
 # production
-/dist
+/app/public
 
 # misc
 .DS_Store
@@ -16,3 +16,7 @@
 # umi
 .umi
 .umi-production
+
+# logs
+logs
+run
