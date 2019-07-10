@@ -4,6 +4,7 @@ import CodeEditor from '@/components/Editor/CodeEditor';
 import ConfigEditor from '@/components/Editor/ConfigEditor';
 import { Spring } from 'react-spring/renderprops'
 import dynamic from 'umi/dynamic';
+import DocumentTitle from 'react-document-title';
 import styles from './index.less';
 
 enum BuildPageTab {
@@ -111,10 +112,12 @@ class BuildPage extends React.Component {
 
   render() {
     return (
-      <div>
-        {this.renderHeader()}
-        {this.renderContent()}
-      </div>
+      <DocumentTitle title='Form Builder'>
+        <div>
+          {this.renderHeader()}
+          {this.renderContent()}
+        </div>
+      </DocumentTitle>
     )
   }
 }

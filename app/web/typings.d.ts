@@ -12,3 +12,4 @@ declare module '@babel/standalone';
 declare module 'redux-persist-transform-immutable';
 declare module 'react-copy-to-clipboard';
 declare module 'react-click-outside';
+declare module 'react-document-title';

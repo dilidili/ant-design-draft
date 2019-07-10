@@ -37,6 +37,7 @@
     "react": "^16.8.6",
     "react-click-outside": "^3.0.1",
     "react-copy-to-clipboard": "^5.0.1",
+    "react-document-title": "^2.0.3",
     "react-dom": "^16.8.6",
     "react-spring": "^8.0.25",
     "redux-logger": "^3.0.6",

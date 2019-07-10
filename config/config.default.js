@@ -1,4 +1,6 @@
 'use strict';
+const fs = require('fs');
+const path = require('path');
 
 module.exports = appInfo => {
   const config = exports = {};
@@ -33,6 +35,10 @@ module.exports = appInfo => {
 
   config.security = {
     csrf: false,
+  };
+
+  config.siteFile = {
+    '/favicon.ico': fs.readFileSync(path.join(__dirname, './favicon.png')),
   };
 
   return config;
