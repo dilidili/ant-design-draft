@@ -13,6 +13,8 @@ import { Popover, Icon, Select, Switch } from 'antd';
 import { ReactAPI } from '@/models/code';
 import enhanceWithClickOutside from 'react-click-outside';
 
+const getTriggerContainer = (triggerNode: HTMLElement) => triggerNode;
+
 interface ConfigEdtiorProps {
   dispatch: Dispatch,
   generatedCode: EditorState,
@@ -52,10 +54,38 @@ class CodeEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState> {
     });
   }
 
+  handleChangeReactAPI = (value: string) => {
+    this.setState({
+      settingVisible: false,
+    });
+
+    this.props.dispatch({
+      type: 'save/updateReactAPI',
+      payload: value,
+    });
+  }
+
+  handleChangeUseTypescript = (checked: boolean) => {
+    this.props.dispatch({
+      type: 'save/updateUseTypescript',
+      payload: checked,
+    })
+  }
+
   handleClickOutside: MouseEventHandler = (evt) => {
     const { onBlur } = this.props;
 
     onBlur && onBlur(evt);
+  }
+
+  handleClickHeader: MouseEventHandler = (evt) => {
+    evt.stopPropagation()
+  }
+
+  handleChangeSettingVisible = (visible: boolean) => {
+    this.setState({
+      settingVisible: visible,
+    });
   }
 
   renderEditor() {
@@ -85,16 +115,9 @@ class CodeEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState> {
           <Select
             size='small'
             value={reactAPISetting}
-            onChange={(value) => {
-              this.setState({
-                settingVisible: false,
-              });
-
-              dispatch({
-                type: 'save/updateReactAPI',
-                payload: value,
-              });
-            }}>
+            getPopupContainer={getTriggerContainer}
+            onChange={this.handleChangeReactAPI}
+          >
             <Select.Option value={ReactAPI.Component}>Component-Based</Select.Option>
             <Select.Option value={ReactAPI.Hooks}>React hooks</Select.Option>
           </Select>
@@ -107,10 +130,7 @@ class CodeEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState> {
             checkedChildren={<Icon type="check" />}
             unCheckedChildren={<Icon type="close" />}
             checked={useTypescript}
-            onChange={(checked) => dispatch({
-              type: 'save/updateUseTypescript',
-              payload: checked,
-            })}
+            onChange={this.handleChangeUseTypescript}
           />
         </div>
       </div>
@@ -123,14 +143,11 @@ class CodeEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState> {
         title="Code settings"
         visible={settingVisible}
         content={content}
-        arrowPointAtCenter
-        onVisibleChange={(visible) => {
-          this.setState({
-            settingVisible: visible,
-          });
-        }}
+        arrowPointAtCenter={true}
+        getPopupContainer={getTriggerContainer}
+        onVisibleChange={this.handleChangeSettingVisible}
       >
-        <Icon type="setting" className={styles.settingButton} />
+        <Icon  type="setting" className={styles.settingButton} />
       </Popover>
     )
   }
@@ -142,7 +159,7 @@ class CodeEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState> {
     return (
       <div className={styles.container} onClick={onFocus}>
         {/* header */}
-        <div className={styles.header} onClick={(evt) => evt.stopPropagation()}>
+        <div className={styles.header} onClick={this.handleClickHeader}>
           <div className={styles.icons}>
             <span className={styles.close} />
             <span className={styles.minimize} />
