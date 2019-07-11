@@ -2,7 +2,7 @@
   "name": "ant-design-draft",
   "private": true,
   "scripts": {
-    "start": "egg-scripts start --daemon --env prod",
+    "start": "egg-scripts start --env prod",
     "dev": "egg-bin dev",
     "stop": "egg-scripts stop",
     "build": "npm run umi:build",
