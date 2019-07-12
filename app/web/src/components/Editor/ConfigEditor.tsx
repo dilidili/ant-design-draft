@@ -10,9 +10,10 @@ import { Dispatch } from 'redux';
 import { ConnectState } from '@/models/connect';
 import Prism from 'prismjs';
 import Editor from 'draft-js-plugins-editor';
-import { Tooltip, Icon } from 'antd';
+import { Tooltip, Icon, Drawer } from 'antd';
 import mentions, { Mention } from './mentions';
 import enhanceWithClickOutside from 'react-click-outside';
+import HelpCenter from './HelpCenter';
 
 interface ConfigEdtiorProps {
   editorState: EditorState,
@@ -20,6 +21,12 @@ interface ConfigEdtiorProps {
   dispatch: Dispatch,
   onFocus?: MouseEventHandler,
   onBlur?: MouseEventHandler,
+}
+
+interface ConfigEdtiorState {
+  helpDrawerVisible: boolean,
+  plugins: any,
+  suggestions: any,
 }
 
 const MentionEntry = (props: { mention: Mention, theme: any }) => {
@@ -46,7 +53,7 @@ const MentionEntry = (props: { mention: Mention, theme: any }) => {
   );
 }
 
-class ConfigEditor extends React.Component<ConfigEdtiorProps> {
+class ConfigEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState> {
   mentionPlugin: any;
 
   constructor(props: ConfigEdtiorProps) {
@@ -66,6 +73,7 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps> {
         createUndoPlugin(),
       ],
       suggestions: [],
+      helpDrawerVisible: false,
     };
   }
 
@@ -92,6 +100,18 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps> {
     const { onBlur } = this.props;
 
     onBlur && onBlur(evt);
+  }
+
+  showHelpDrawer: MouseEventHandler = () => {
+    this.setState({
+      helpDrawerVisible: true,
+    });
+  }
+
+  onHelpDrawerClose = () => {
+    this.setState({
+      helpDrawerVisible: false,
+    });
   }
 
   onMentionSearchChange = ({ value }: { value: string }) => {
@@ -129,6 +149,23 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps> {
     )
   }
 
+  renderHelpDrawer() {
+    const { helpDrawerVisible } = this.state;
+
+    return (
+      <Drawer
+        title="Help"
+        placement="right"
+        closable={false}
+        width={512}
+        onClose={this.onHelpDrawerClose}
+        visible={helpDrawerVisible}
+      >
+        <HelpCenter />
+      </Drawer>
+    )
+  }
+
   render() {
     const { onFocus } = this.props;
 
@@ -147,10 +184,16 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps> {
           <Tooltip title="reset">
             <Icon type="rollback" className={styles.resetButton} onClick={this.handleResetContent}/>
           </Tooltip>
+
+          <Tooltip title="help">
+            <Icon type="question-circle" className={styles.helpButton} onClick={this.showHelpDrawer}/>
+          </Tooltip>
         </div>
 
         {/* editor */}
         {this.renderEditor()}
+
+        {this.renderHelpDrawer()}
       </div>
     )
   }

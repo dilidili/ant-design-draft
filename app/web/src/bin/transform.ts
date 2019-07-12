@@ -1,4 +1,5 @@
 const Mustache = require('mustache');
+import { FormSchema, TransformSchema, FormItem, TransformConfig, Entries, FormSchemaProps, Element } from './transform.d';
 
 const decodeLiteralPrimative = value => {
   if (typeof value === 'string') {
@@ -10,55 +11,57 @@ const decodeLiteralPrimative = value => {
   }
 };
 
-const getFormItemElement = (formItem, entries, formProps, config) => {
+const getFormItemElement = function (formItem: FormItem | Array<FormItem>, entries: Entries, formProps: FormSchemaProps , config: FormSchema): Element {
   let formItemChildren = [];
   let formItemProps = {};
   let formItemGutter;
 
-  if (formItem.type === 'Row') {
-    const { layout, items, props } = formItem;
-    entries.antdImports.add('Row');
-    entries.antdImports.add('Col');
-
-    const rowChildren = items.map((col, k) => {
-      return {
-        type: 'Col',
-        props: {
-          span: layout[k],
-        },
-        children: [getFormItemElement(col, entries, formProps, config)],
-      }
-    })
-
-    return {
-      type: 'Row',
-      children: rowChildren,
-      props: props || {},
-    }
-  }
-
-  if (formItem.type === 'Divider') {
-    const { type, props } = formItem;
-    entries.antdImports.add('Divider');
-
-    return {
-      type: type,
-      props: props || {},
-    }
-  }
-
   // support array as element of items
-  let formItemList = formItem;
+  let formItemList: Array<FormItem>;
   if (!Array.isArray(formItem)) {
+    if (formItem.type === 'Row') {
+      const { layout, items, props } = formItem;
+      entries.antdImports.add('Row');
+      entries.antdImports.add('Col');
+  
+      const rowChildren = items.map((col, k) => {
+        return {
+          type: 'Col',
+          props: {
+            span: layout[k],
+          },
+          children: [getFormItemElement(col, entries, formProps, config)],
+        }
+      })
+  
+      return {
+        type: 'Row',
+        children: rowChildren,
+        props: props || {},
+      }
+    }
+  
+    if (formItem.type === 'Divider') {
+      const { type, props } = formItem;
+      entries.antdImports.add('Divider');
+  
+      return {
+        type: type,
+        props: props || {},
+      }
+    }
+
     formItemList = [formItem];
+  } else {
+    formItemList = formItem;
   }
 
   formItemList.forEach(formItem => {
     const {
       type,
+      label,
       onSubmit,
       name,
-      label,
       hasFeedback,
       extra,
       valuePropName,
@@ -244,7 +247,7 @@ const getFormItemElement = (formItem, entries, formProps, config) => {
   return formItemElement;
 }
 
-const transformFormField = (fieldValue, entries, config = {}) => {
+const transformFormField = (fieldValue: FormSchema, entries: Entries, config: TransformConfig) => {
   const {
     items,
     props: formProps = {},
@@ -374,16 +377,16 @@ const transformFormInModalField = (fieldValue, entries, config = {}) => {
   }
 }
 
-const transformField = (fieldName, fieldValue, entries, config) => {
+const transformField = (fieldName: keyof TransformSchema, schema: TransformSchema, entries: Entries, config) => {
   switch(fieldName) {
     case 'form':
-      transformFormField(fieldValue, entries, config);
+      transformFormField(schema.form, entries, config);
       break;
     case 'formInModal':
-      transformFormInModalField(fieldValue, entries, config);
+      transformFormInModalField( schema.formInModal, entries, config);
       break;
     case 'name':
-      entries.componentType = fieldValue || '';
+      entries.componentType = schema.name;
       break;
     default:
   }
@@ -552,8 +555,9 @@ const ${view.componentType}Modal = (props: ${view.componentType}ModalProps) => {
   return code;
 }
 
-const transform = (schema = {}, config = {}) => {
+const transform = (schema: TransformSchema, config: TransformConfig = {}) => {
   const entries = {
+    componentType: '',
     antdImports: new Set(),
     otherImports: [],
     handlers: [],
@@ -570,8 +574,8 @@ const transform = (schema = {}, config = {}) => {
     formTsWrapper: () => (text, render) => render(text),
   };
 
-  Object.keys(schema).forEach(key => {
-    transformField(key, schema[key], entries, config);
+  Object.keys(schema).forEach((key) => {
+    transformField(key as keyof TransformSchema, schema, entries, config);
   });
 
   // generate
