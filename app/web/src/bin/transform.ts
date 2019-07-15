@@ -1,7 +1,8 @@
 const Mustache = require('mustache');
-import { FormSchema, TransformSchema, FormItem, TransformConfig, Entries, FormSchemaProps, Element } from './transform.d';
+import { FormSchema, TransformSchema, FormItem, TransformConfig, Entries, FormSchemaProps, Element, FormInModalSchema } from './transform.d';
+import { FormItemProps } from 'antd/lib/form/FormItem';
 
-const decodeLiteralPrimative = value => {
+const decodeLiteralPrimative = (value: string | Array<any>) => {
   if (typeof value === 'string') {
     return `'${value}'`;
   } else if (Array.isArray(value)) {
@@ -11,9 +12,9 @@ const decodeLiteralPrimative = value => {
   }
 };
 
-const getFormItemElement = function (formItem: FormItem | Array<FormItem>, entries: Entries, formProps: FormSchemaProps , config: FormSchema): Element {
-  let formItemChildren = [];
-  let formItemProps = {};
+const getFormItemElement = function (formItem: FormItem | Array<FormItem>, entries: Entries, formProps: FormSchemaProps , config: TransformConfig): Element {
+  let formItemChildren: Element[] = [];
+  let formItemProps: FormItemProps = {};
   let formItemGutter;
 
   // support array as element of items
@@ -81,8 +82,8 @@ const getFormItemElement = function (formItem: FormItem | Array<FormItem>, entri
     if (gutter) formItemGutter = gutter;
 
     // field rules
-    const rules = [];
-    (formItemRules || []).forEach(rule => {
+    const rules: Array<string> = [];
+    (formItemRules || []).forEach((rule) => {
       if (rule === 'required') {
         rules.push(`{ required: true, message: 'Please input your ${formItem.name}!' }`);
       } else if (rule === 'email') {
@@ -116,7 +117,7 @@ const getFormItemElement = function (formItem: FormItem | Array<FormItem>, entri
     });
 
     // field children
-    let children = [];
+    let children: Array<Element> = [];
     let mounted = false;
     if (type === 'Button') {
       if (onSubmit) {
@@ -166,7 +167,7 @@ const getFormItemElement = function (formItem: FormItem | Array<FormItem>, entri
   };
 `)
         formProps.onSubmit = {
-          type: 'refrence',
+          type: 'reference',
           payload: 'handleSubmit',
         }
       } else {
@@ -181,7 +182,7 @@ const getFormItemElement = function (formItem: FormItem | Array<FormItem>, entri
   };
 `)
         formProps.onSubmit = {
-          type: 'refrence',
+          type: 'reference',
           payload: 'this.handleSubmit',
         }
       }
@@ -253,7 +254,7 @@ const transformFormField = (fieldValue: FormSchema, entries: Entries, config: Tr
     props: formProps = {},
   } = fieldValue;
 
-  const formElement = {
+  const formElement: Element = {
     type: 'Form',
     props: formProps,
     children: [],
@@ -263,7 +264,7 @@ const transformFormField = (fieldValue: FormSchema, entries: Entries, config: Tr
   if (items && items.length) {
     items.forEach(formItem => {
       const formItemElement = getFormItemElement(formItem, entries, formProps, config);
-      formElement.children.push(formItemElement);
+      Array.isArray(formElement.children) && formElement.children.push(formItemElement);
     });
   }
 
@@ -306,22 +307,22 @@ const transformFormField = (fieldValue: FormSchema, entries: Entries, config: Tr
   }
 }
 
-const transformFormInModalField = (fieldValue, entries, config = {}) => {
+const transformFormInModalField = (fieldValue: FormInModalSchema, entries: Entries, config: TransformConfig) => {
   transformFormField(fieldValue.form, entries, config);
 
-  const modalElement = {
+  const modalElement: Element = {
     type: 'Modal',
     props: {
       visible: {
-        type: 'refrence',
+        type: 'reference',
         payload: 'visible',
       },
       onCancel: {
-        type: 'refrence',
+        type: 'reference',
         payload: 'onCancel',
       },
       onOk: {
-        type: 'refrence',
+        type: 'reference',
         payload: 'onCreate',
       },
       title: fieldValue.title || 'title',
@@ -377,13 +378,13 @@ const transformFormInModalField = (fieldValue, entries, config = {}) => {
   }
 }
 
-const transformField = (fieldName: keyof TransformSchema, schema: TransformSchema, entries: Entries, config) => {
+const transformField = (fieldName: keyof TransformSchema, schema: TransformSchema, entries: Entries, config: TransformConfig) => {
   switch(fieldName) {
     case 'form':
       transformFormField(schema.form, entries, config);
       break;
     case 'formInModal':
-      transformFormInModalField( schema.formInModal, entries, config);
+      transformFormInModalField(schema.formInModal, entries, config);
       break;
     case 'name':
       entries.componentType = schema.name;
@@ -405,7 +406,7 @@ const renderProps = (child, renderEntries) => {
       return r + ` ${k}="${props[k]}"`;
     } else if (typeof prop === 'number' || typeof prop === 'boolean') {
       return r + ` ${k}={${props[k]}}`;
-    } else if (prop && prop.type === 'refrence') {
+    } else if (prop && prop.type === 'reference') {
       return r + ` ${k}={${props[k].payload}}`;
     } else if (Array.isArray(prop)) {
       return r + ` ${k}={${JSON.stringify(prop)}}`;
@@ -420,35 +421,37 @@ const renderProps = (child, renderEntries) => {
   }, '')
 };
 
-const renderElements = (children = [], indentNums, entries, renderEntries) => {
+const renderElements = (children: Element[] | string, indentNums: number, entries: Entries, renderEntries: any) => {
   const indent = ' '.repeat(indentNums);
-  let ret = [];
+  let ret = [] as string[];
 
   if (Array.isArray(children)) {
     children.forEach(child => {
-      const {
-        type,
-      } = child;
-
-      child.props = child.props || {};
-      const props = renderProps(child, renderEntries);
-      const nextLevelChildren = child.children || child.props.children;
-
-      if (type === 'custom') {
-        const { start, end } = child.render(indent);
-        ret.push(start); 
-        if (nextLevelChildren) {
+      if (!!child) {
+        const {
+          type,
+        } = child;
+  
+        child.props = child.props || {};
+        const props = renderProps(child, renderEntries);
+        const nextLevelChildren = child.children || child.props.children;
+  
+        if (type === 'custom' && child && child.render) {
+          const { start, end } =  child.render(indent);
+          start && ret.push(start); 
+          if (nextLevelChildren) {
+            ret = ret.concat(renderElements(nextLevelChildren, indentNums + 2, entries, renderEntries));
+          }
+          if (end) {
+            ret.push(end); 
+          }
+        } else if (nextLevelChildren && nextLevelChildren.length > 0) {
+          ret.push(`${indent}<${type}${props}>`);
           ret = ret.concat(renderElements(nextLevelChildren, indentNums + 2, entries, renderEntries));
+          ret.push(`${indent}</${type}>`);
+        } else {
+          ret.push(`${indent}<${type}${props} />`);
         }
-        if (end) {
-          ret.push(end); 
-        }
-      } else if (nextLevelChildren && nextLevelChildren.length > 0) {
-        ret.push(`${indent}<${type}${props}>`);
-        ret = ret.concat(renderElements(nextLevelChildren, indentNums + 2, entries, renderEntries));
-        ret.push(`${indent}</${type}>`);
-      } else {
-        ret.push(`${indent}<${type}${props} />`);
       }
     });
   } else if (typeof children === 'string') {
@@ -458,7 +461,7 @@ const renderElements = (children = [], indentNums, entries, renderEntries) => {
   return ret;
 };
 
-const generate = (entries, config = {}) => {
+const generate = (entries: Entries, config: TransformConfig): string => {
   const {
     antdImports,
     otherImports,
@@ -468,12 +471,15 @@ const generate = (entries, config = {}) => {
   const view = {
     componentType: entries.componentType,
     handlers,
+    antdImports: '',
     render: {
       ...entries.render,
+      declareMap: [] as string[],
       return: '',
     },
     renderForm: {
       ...entries.renderForm,
+      declareMap: [] as string[],
       return: '',
     },
     formTsWrapper: entries.formTsWrapper,
@@ -487,7 +493,7 @@ const generate = (entries, config = {}) => {
       view.antdImports = `import { ${[...antdImports].join(', ')} } from 'antd';`
     }
   } else {
-    view.antdImports = null;
+    view.antdImports = '';
   }
 
   if (otherImports && otherImports.length) {
@@ -505,21 +511,21 @@ const generate = (entries, config = {}) => {
   const indent = config.reactApi === 'Hooks' ? '  ' : '    ';
 
   // transform declareMap to list format
-  view.render.declareMap = Object.keys(view.render.declareMap).reduce((r, k) => {
-    r.push(`const ${view.render.declareMap[k]} = ${k};`.split('\n').map(v => indent + v).join('\n'));
+  view.render.declareMap = Object.keys(entries.render.declareMap).reduce((r, k) => {
+    r.push(`const ${entries.render.declareMap[k]} = ${k};`.split('\n').map(v => indent + v).join('\n'));
     return r;
-  }, []);
-  view.renderForm.declareMap = Object.keys(view.renderForm.declareMap).reduce((r, k) => {
-    r.push(`const ${view.renderForm.declareMap[k]} = ${k};`.split('\n').map(v => indent + v).join('\n'));
+  }, [] as string[]);
+  view.renderForm.declareMap = Object.keys(entries.renderForm.declareMap).reduce((r, k) => {
+    r.push(`const ${entries.renderForm.declareMap[k]} = ${k};`.split('\n').map(v => indent + v).join('\n'));
     return r;
-  }, []);
+  }, [] as string[]);
 
-  let ret = Mustache.render(entries.template, view);
+  let ret: string = Mustache.render(entries.template, view);
   ret = postGenerate(ret, view, config);
   return ret;
 };
 
-const postGenerate = (code, view, config) => {
+const postGenerate = (code: string, view: any, config: TransformConfig) => {
   if (config.useTypescript) {
     // form in modal
     if (config.reactApi === 'Hooks') {
@@ -558,6 +564,8 @@ const ${view.componentType}Modal = (props: ${view.componentType}ModalProps) => {
 const transform = (schema: TransformSchema, config: TransformConfig = {}) => {
   const entries = {
     componentType: '',
+    template: '',
+    formTsProps: '',
     antdImports: new Set(),
     otherImports: [],
     handlers: [],
@@ -571,7 +579,7 @@ const transform = (schema: TransformSchema, config: TransformConfig = {}) => {
       declares: [],
       return: [],
     },
-    formTsWrapper: () => (text, render) => render(text),
+    formTsWrapper: () => (text: string, render: (content: string) => string) => render(text),
   };
 
   Object.keys(schema).forEach((key) => {
