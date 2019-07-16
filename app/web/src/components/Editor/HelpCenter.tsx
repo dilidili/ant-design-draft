@@ -17,10 +17,89 @@ const FormTypeTreeData: TypeTreeNode = {
   description: 'Form is used to collect, validate, and submit the user input, usually contains various form items including checkbox, radio, input, select, and etc.',
   typescript: `type FormSchema = {
   items: Array<FormItem | Array<FormItem>>;
-  props?: FormSchemaProps;
 }`,
   trigger: '@Form',
-  children: [],
+  children: [{
+    name: 'items',
+    key: 'Form.items',
+    description: 'A form consists of one or more form fields whose type includes input, textarea, checkbox, radio, select, tag, and more. A form field is defined using FormItem.',
+    typescript: `export type FormItem = {
+  type: 'Row' | 'Divider' | 'Button' | 'Cascader' | 'Radio.Group';
+  name: string; // the name of value when submit
+  label?: React.ReactNode; // Form field label
+  hasFeedback?: boolean;
+  valuePropName?: string | Array<any>;
+  initialValue?: string | Array<any>;
+  props: any; // props pass to wrapped component.
+}`,
+    children: [{
+      name: 'Input',
+      key: 'FormItem.Input',
+      description: 'A basic widget for getting the user input is a text field. Keyboard and mouse can be used for providing or changing data.',
+      trigger: '@Input',
+      typescript: `{
+  name: 'email',
+  label: 'E-mail',
+  type: 'Input',
+  rules: ['required', 'email'],
+}`,
+    }, {
+      name: 'Select',
+      key: 'FormItem.Select',
+      description: 'Select component to select value from options.',
+      trigger: '@Select',
+      typescript: `{
+  name: 'attendees',
+  label: 'Attendees',
+  type: 'Select',
+  rules: ['required'],
+}`,
+    }, {
+      name: 'DatePicker',
+      key: 'FormItem.DatePicker',
+      description: 'To select or input a date.',
+      trigger: '@DatePicker',
+      typescript: `{
+  name: 'birthday',
+  label: 'Birthday',
+  type: 'DatePicker',
+  rules: ['required'],
+  props: {
+    showTime: true,
+    format: 'YYYY-MM-DD HH:mm:ss',
+  }
+}`,
+    }, {
+      name: 'TimePicker',
+      key: 'FormItem.TimePicker',
+      description: 'To select or input a time.',
+      trigger: '@TimePicker',
+      typescript: `{
+  name: 'timePicker',
+  label: 'TimePicker',
+  type: 'TimePicker',
+  rules: ['required'],
+  props: {
+    format: 'HH:mm:ss',
+  }
+}`,
+    }, {
+      name: 'RangePicker',
+      key: 'FormItem.RangePicker',
+      description: 'To select or input a date range.',
+      trigger: '@RangePicker',
+      typescript: `{
+  name: 'rangePicker',
+  label: 'RangePicker',
+  type: 'DatePicker.RangePicker',
+  rules: ['required'],
+  props: {
+    showTime: true,
+    format: 'YYYY-MM-DD HH:mm:ss',
+  }
+}`,
+    }],
+  }],
 }
 
 const TypeTreeData: TypeTreeNode[] = [{
@@ -45,7 +124,7 @@ const renderTreeNodes = (nodeList: TypeTreeNode[]): ReactNode => {
 const DocTree = () => {
   const [ selectedNode, setSelectedNode ] = useState<TypeTreeNode | null>(FormTypeTreeData);
   const [ selectedKeys, setSelectedKeys ] = useState<string[]>([FormTypeTreeData.key]);
-  const [ expandedKeys, setExpandedKeys ] = useState<string[]>([FormTypeTreeData.key, 'schema']);
+  const [ expandedKeys, setExpandedKeys ] = useState<string[]>([FormTypeTreeData.key, 'schema', 'Form.items']);
 
   return (
     <div>
@@ -76,7 +155,10 @@ const DocTree = () => {
 
 const HelpCenter = () => {
   return (
-    <div className={styles.container}>
+    <div
+      className={styles.container}
+      onClick={evt => evt.stopPropagation()} // prevent trigger switch edtior focus.
+    >
       <div className={styles.head1}>Create the config</div>
       <p>With the empty config created (by click the {<Icon type="question-circle" />}), create your form config like so:</p>
 

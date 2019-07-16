@@ -13,7 +13,6 @@ const mentions: Array<Mention> = [
     title: 'Create a form',
     name: `{
   items: [],
-  props: {},
 }`,
   },
   {
@@ -75,6 +74,33 @@ const mentions: Array<Mention> = [
   name: 'birthday',
   label: 'Birthday',
   type: 'DatePicker',
+  rules: ['required'],
+  props: {
+    showTime: true,
+    format: 'YYYY-MM-DD HH:mm:ss',
+  }
+},`,
+  },
+  {
+    shortname: 'TimePicker',
+    title: 'Form item label: |--- HH:mm:ss --- v|',
+    name: `{
+  name: 'timePicker',
+  label: 'TimePicker',
+  type: 'TimePicker',
+  rules: ['required'],
+  props: {
+    format: 'HH:mm:ss',
+  }
+},`,
+  },
+  {
+    shortname: 'RangePicker',
+    title: 'Form item label: |--- Date ~ Date --- v|',
+    name: `{
+  name: 'rangePicker',
+  label: 'RangePicker',
+  type: 'DatePicker.RangePicker',
   rules: ['required'],
   props: {
     showTime: true,

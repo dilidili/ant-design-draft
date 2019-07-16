@@ -22,6 +22,22 @@ class BuildPage extends React.Component {
     currentVisibleTab: new Set([BuildPageTab.ConfigEditor, BuildPageTab.Preview, BuildPageTab.CodeEditor]),
   }
 
+  onFocusConfigEditor = () => this.setState({
+    currentVisibleTab: new Set([BuildPageTab.ConfigEditor, BuildPageTab.Preview]),
+  })
+
+  onBlurConfigEditor = () => this.state.currentVisibleTab.has(BuildPageTab.ConfigEditor) && this.setState({
+    currentVisibleTab: new Set([BuildPageTab.ConfigEditor, BuildPageTab.Preview, BuildPageTab.CodeEditor]),
+  })
+
+  onFocusCodeEditor = () => this.setState({
+    currentVisibleTab: new Set([BuildPageTab.CodeEditor]),
+  })
+
+  onBlurCodeEditor = () => this.state.currentVisibleTab.has(BuildPageTab.CodeEditor) && this.setState({
+    currentVisibleTab: new Set([BuildPageTab.ConfigEditor, BuildPageTab.Preview, BuildPageTab.CodeEditor]),
+  })
+
   renderHeader() {
     return (
       <div className={styles.header}>
@@ -54,12 +70,8 @@ class BuildPage extends React.Component {
             >
               <div className={styles.contentHeader}><div/><p>Config</p><div/></div>
               <ConfigEditor
-                onFocus={() => this.setState({
-                  currentVisibleTab: new Set([BuildPageTab.ConfigEditor, BuildPageTab.Preview]),
-                })}
-                onBlur={() => currentVisibleTab.has(BuildPageTab.ConfigEditor) && this.setState({
-                  currentVisibleTab: new Set([BuildPageTab.ConfigEditor, BuildPageTab.Preview, BuildPageTab.CodeEditor]),
-                })}
+                onFocus={this.onFocusConfigEditor}
+                onBlur={this.onBlurConfigEditor}
               />
             </div>
           )}
@@ -96,12 +108,8 @@ class BuildPage extends React.Component {
             >
               <div className={styles.contentHeader}><div/><p>Code</p><div/></div>
               <CodeEditor
-                onFocus={() => this.setState({
-                  currentVisibleTab: new Set([BuildPageTab.CodeEditor]),
-                })}
-                onBlur={() => currentVisibleTab.has(BuildPageTab.CodeEditor) && this.setState({
-                  currentVisibleTab: new Set([BuildPageTab.ConfigEditor, BuildPageTab.Preview, BuildPageTab.CodeEditor]),
-                })}
+                onFocus={this.onFocusCodeEditor}
+                onBlur={this.onBlurCodeEditor}
               />
             </div>
           )}

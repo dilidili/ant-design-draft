@@ -41,6 +41,10 @@ const getFormItemElement = function (formItem: FormItem | Array<FormItem>, entri
         props: props || {},
       }
     }
+
+    if (formItem.type === 'DatePicker.RangePicker') {
+      entries.antdImports.add('DatePicker');
+    }
   
     if (formItem.type === 'Divider') {
       const { type, props } = formItem;

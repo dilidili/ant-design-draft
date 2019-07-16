@@ -4,8 +4,8 @@ import { ConnectState } from '@/models/connect.d';
 import styles from './Preview.less';
 
 // import stylesheets for preview components.
-import { Divider } from 'antd';
-
+import 'antd/es/date-picker/style';
+import 'antd/es/divider/style';
 (window as any).React = React;
 (window as any).AntD = require('antd');
 
