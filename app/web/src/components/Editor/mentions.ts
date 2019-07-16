@@ -7,7 +7,16 @@ export type Mention = {
   insertAsText: boolean,
 }
 
-const mentions: Array<Mention> = [{
+const mentions: Array<Mention> = [
+  {
+    shortname: 'Form',
+    title: 'Create a form',
+    name: `{
+  items: [],
+  props: {},
+}`,
+  },
+  {
     shortname: 'Divider',
     title: '----- text -----',
     name: `{
@@ -16,7 +25,6 @@ const mentions: Array<Mention> = [{
     children: 'Text',
   }
 },`,
-    insertAsText: true,
   },
   {
     shortname: 'Row',
@@ -39,7 +47,6 @@ const mentions: Array<Mention> = [{
     }
   ],
 },`,
-    insertAsText: true,
   },
   {
     shortname: 'Input',
@@ -50,7 +57,6 @@ const mentions: Array<Mention> = [{
   type: 'Input',
   rules: ['required', 'email'],
 },`,
-    insertAsText: true,
   },
   {
     shortname: 'Select',
@@ -61,7 +67,6 @@ const mentions: Array<Mention> = [{
   type: 'Select',
   rules: ['required'],
 },`,
-    insertAsText: true,
   },
   {
     shortname: 'DatePicker',
@@ -76,7 +81,6 @@ const mentions: Array<Mention> = [{
     format: 'YYYY-MM-DD HH:mm:ss',
   }
 },`,
-    insertAsText: true,
   },
 ]
 .sort((a, b) => a.shortname.localeCompare(b.shortname))
@@ -94,6 +98,7 @@ const mentions: Array<Mention> = [{
 
       return name.split('\n').map((line, i) => i > 0 ? indent + line : line).join('\n');
     },
+    insertAsText: true,
     ...config,
   }
 })

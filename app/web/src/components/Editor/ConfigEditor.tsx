@@ -3,7 +3,7 @@ import styles from './ConfigEditor.less';
 import createCodeEditorPlugin from '@/utils/draft-js-code-editor-plugin';
 import createPrismPlugin from '@/utils/draft-js-prism-plugin';
 import createUndoPlugin from 'draft-js-undo-plugin';
-import createMentionPlugin, { defaultSuggestionsFilter } from 'ant-design-draft-mention-plugin';
+import createMentionPlugin from 'ant-design-draft-mention-plugin';
 import { EditorState } from 'draft-js';
 import { connect } from 'dva';
 import { Dispatch } from 'redux';
@@ -52,6 +52,15 @@ const MentionEntry = (props: { mention: Mention, theme: any }) => {
     </div>
   );
 }
+
+const suggestionsFilter = (searchValue: string, suggestions: any) => {
+  var value = searchValue.toLowerCase();
+  var filteredSuggestions = suggestions.filter(function (suggestion: any) {
+    return !value || suggestion.shortname.toLowerCase().indexOf(value) > -1;
+  });
+  var length = filteredSuggestions.length < 5 ? filteredSuggestions.length : 5;
+  return filteredSuggestions.slice(0, length);
+}; 
 
 class ConfigEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState> {
   mentionPlugin: any;
@@ -116,7 +125,7 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState>
 
   onMentionSearchChange = ({ value }: { value: string }) => {
     this.setState({
-      suggestions: defaultSuggestionsFilter(value, mentions),
+      suggestions: suggestionsFilter(value, mentions),
     })
   }
 
@@ -154,7 +163,7 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState>
 
     return (
       <Drawer
-        title="Help"
+        title="Helper"
         placement="right"
         closable={false}
         width={512}
