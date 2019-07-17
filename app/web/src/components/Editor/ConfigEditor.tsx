@@ -12,7 +12,6 @@ import Prism from 'prismjs';
 import Editor from 'draft-js-plugins-editor';
 import { Tooltip, Icon, Drawer } from 'antd';
 import mentions, { Mention } from './mentions';
-import enhanceWithClickOutside from 'react-click-outside';
 import HelpCenter from './HelpCenter';
 
 interface ConfigEdtiorProps {
@@ -20,7 +19,6 @@ interface ConfigEdtiorProps {
   saveConfigCode: string,
   dispatch: Dispatch,
   onFocus?: MouseEventHandler,
-  onBlur?: MouseEventHandler,
 }
 
 interface ConfigEdtiorState {
@@ -103,12 +101,6 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState>
       type: 'code/changeEditorState',
       payload: editorState,
     });
-  }
-
-  handleClickOutside: MouseEventHandler = (evt) => {
-    const { onBlur } = this.props;
-
-    onBlur && onBlur(evt);
   }
 
   showHelpDrawer: MouseEventHandler = () => {
@@ -213,4 +205,4 @@ export default connect(({ code, save }: ConnectState) => {
     editorState: code.editorState,
     saveConfigCode: save.configCode,
   }
-})(enhanceWithClickOutside(ConfigEditor));
+})(ConfigEditor);

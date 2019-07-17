@@ -11,7 +11,6 @@ import { Dispatch } from 'redux';
 import CopyButton from '../Button/CopyButton';
 import { Popover, Icon, Select, Switch } from 'antd';
 import { ReactAPI } from '@/models/code';
-import enhanceWithClickOutside from 'react-click-outside';
 
 const getTriggerContainer = (triggerNode: HTMLElement) => triggerNode;
 
@@ -21,7 +20,6 @@ interface ConfigEdtiorProps {
   reactAPISetting: ReactAPI,
   useTypescript: boolean,
   onFocus?: MouseEventHandler,
-  onBlur?: MouseEventHandler,
 }
 
 interface ConfigEdtiorState {
@@ -70,12 +68,6 @@ class CodeEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState> {
       type: 'save/updateUseTypescript',
       payload: checked,
     })
-  }
-
-  handleClickOutside: MouseEventHandler = (evt) => {
-    const { onBlur } = this.props;
-
-    onBlur && onBlur(evt);
   }
 
   handleClickHeader: MouseEventHandler = (evt) => {
@@ -187,4 +179,4 @@ export default connect(({ code, save }: ConnectState) => {
     reactAPISetting: save.ReactAPI,
     useTypescript: save.useTypescript,
   }
-})(enhanceWithClickOutside(CodeEditor));
+})(CodeEditor);

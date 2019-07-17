@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { MouseEventHandler, ReactNode, ReactElement } from 'react';
 import { Icon } from 'antd';
 import CodeEditor from '@/components/Editor/CodeEditor';
 import ConfigEditor from '@/components/Editor/ConfigEditor';
 import { Spring } from 'react-spring/renderprops'
 import dynamic from 'umi/dynamic';
 import DocumentTitle from 'react-document-title';
+import enhanceWithClickOutside from 'react-click-outside';
 import styles from './index.less';
 
 enum BuildPageTab {
@@ -17,6 +18,26 @@ const Preview: any = dynamic({
   loader: () => import('@/components/Editor/Preview'),
 })
 
+type ClickOutsideWrapperProps = {
+  children: ReactElement;
+  handleClickOutside: Function;
+};
+
+class ClickOutside extends React.Component<ClickOutsideWrapperProps> {
+  constructor(props: ClickOutsideWrapperProps) {
+    super(props);
+
+    this.handleClickOutside = props.handleClickOutside;
+  }
+
+  handleClickOutside: Function;
+
+  render() {
+    return this.props.children;
+  }
+}
+const ClickOutsideWrapper = enhanceWithClickOutside(ClickOutside);
+
 class BuildPage extends React.Component {
   state = {
     currentVisibleTab: new Set([BuildPageTab.ConfigEditor, BuildPageTab.Preview, BuildPageTab.CodeEditor]),
@@ -26,17 +47,15 @@ class BuildPage extends React.Component {
     currentVisibleTab: new Set([BuildPageTab.ConfigEditor, BuildPageTab.Preview]),
   })
 
-  onBlurConfigEditor = () => this.state.currentVisibleTab.has(BuildPageTab.ConfigEditor) && this.setState({
-    currentVisibleTab: new Set([BuildPageTab.ConfigEditor, BuildPageTab.Preview, BuildPageTab.CodeEditor]),
-  })
-
   onFocusCodeEditor = () => this.setState({
     currentVisibleTab: new Set([BuildPageTab.CodeEditor]),
   })
 
-  onBlurCodeEditor = () => this.state.currentVisibleTab.has(BuildPageTab.CodeEditor) && this.setState({
-    currentVisibleTab: new Set([BuildPageTab.ConfigEditor, BuildPageTab.Preview, BuildPageTab.CodeEditor]),
-  })
+  handleClickOutside: MouseEventHandler = () => {
+    this.setState({
+      currentVisibleTab: new Set([BuildPageTab.ConfigEditor, BuildPageTab.Preview, BuildPageTab.CodeEditor]),
+    });
+  }
 
   renderHeader() {
     return (
@@ -71,7 +90,6 @@ class BuildPage extends React.Component {
               <div className={styles.contentHeader}><div/><p>Config</p><div/></div>
               <ConfigEditor
                 onFocus={this.onFocusConfigEditor}
-                onBlur={this.onBlurConfigEditor}
               />
             </div>
           )}
@@ -109,7 +127,6 @@ class BuildPage extends React.Component {
               <div className={styles.contentHeader}><div/><p>Code</p><div/></div>
               <CodeEditor
                 onFocus={this.onFocusCodeEditor}
-                onBlur={this.onBlurCodeEditor}
               />
             </div>
           )}
@@ -123,7 +140,10 @@ class BuildPage extends React.Component {
       <DocumentTitle title='Form Builder'>
         <div>
           {this.renderHeader()}
-          {this.renderContent()}
+
+          <ClickOutsideWrapper handleClickOutside={this.handleClickOutside}>
+            {this.renderContent()}
+          </ClickOutsideWrapper>
         </div>
       </DocumentTitle>
     )
