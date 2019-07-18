@@ -54,6 +54,7 @@ export type FormItem = {
   gutter?: number;
   span?: number;
   wrapperCol?: ColProps;
+  labelCol?: ColProps;
   rules? : Array<FormItemRule>;
   validators? : Array<string>;
   extra?: React.ReactNode;

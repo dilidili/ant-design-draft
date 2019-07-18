@@ -11,6 +11,64 @@ type TypeTreeNode = {
   children?: TypeTreeNode[];
 };
 
+const LayoutTypeTreeData = (prefix: string): TypeTreeNode => ({
+  name: 'layout',
+  key: `${prefix}Layout`,
+  description: 'There are three layout for form: horizontal, vertical and multi-column.',
+  typescript: `const schema = {
+  name: 'DefaultForm',
+  form: {
+    @LayoutInline
+    items: [
+      // form items
+      @Input
+    ],
+  },
+}`,
+  children: [{
+    name: 'Horizontal layout',
+    key: `${prefix}LayoutHorizontal`,
+    description: 'Label and content layout in a same row.',
+    trigger: '@LayoutHorizontal(Form or FormItem)',
+    typescript: `props: {
+  labelCol: { span: 4 },
+  wrapperCol: { span: 14 }
+}`
+  }, {
+    name: 'Vertical layout',
+    key: `${prefix}LayoutVertical`,
+    description: 'Form item content layouts below the row of label.',
+    trigger: '@LayoutVertical(Form or FormItem)',
+    typescript: `props: {
+  labelCol: { span: 24 },
+  wrapperCol: { span: 24 }
+}`
+  }, {
+    name: 'Multi-column form row',
+    key: `${prefix}MultiColumnRow`,
+    description: 'Multiple form items layout in a same line.',
+    trigger: '@Row(Form.items)',
+    typescript: `{
+  type: 'Row',
+  props: {
+    gutter: 24,
+  },
+  layout: [12, 12],
+  items: [
+    {
+      type: 'Input',
+      name: 'inputA',
+      label: 'Input A',
+    }, {
+      type: 'Input',
+      name: 'inputB',
+      label: 'Input B',
+    }
+  ],
+}`,
+  }]
+});
+
 const FormTypeTreeData: TypeTreeNode = {
   name: 'Form',
   key: 'Form',
@@ -19,7 +77,7 @@ const FormTypeTreeData: TypeTreeNode = {
   items: Array<FormItem | Array<FormItem>>;
 }`,
   trigger: '@Form',
-  children: [{
+  children: [LayoutTypeTreeData('Form'), {
     name: 'items',
     key: 'Form.items',
     description: 'A form consists of one or more form fields whose type includes input, textarea, checkbox, radio, select, tag, and more. A form field is defined using FormItem.',
@@ -98,7 +156,19 @@ const FormTypeTreeData: TypeTreeNode = {
     format: 'YYYY-MM-DD HH:mm:ss',
   }
 }`,
-    }],
+    }, {
+      name: 'Switch',
+      key: 'FormItem.Switch',
+      description: 'Switching Selector.',
+      trigger: '@Switch',
+      typescript: `{
+  name: 'switch',
+  label: 'Switch',
+  type: 'Switch',
+  props: {
+  }
+}`,
+    }].sort((a, b) => a.name.localeCompare(b. name)),
   }],
 }
 
@@ -124,7 +194,7 @@ const renderTreeNodes = (nodeList: TypeTreeNode[]): ReactNode => {
 const DocTree = () => {
   const [ selectedNode, setSelectedNode ] = useState<TypeTreeNode | null>(FormTypeTreeData);
   const [ selectedKeys, setSelectedKeys ] = useState<string[]>([FormTypeTreeData.key]);
-  const [ expandedKeys, setExpandedKeys ] = useState<string[]>([FormTypeTreeData.key, 'schema', 'Form.items']);
+  const [ expandedKeys, setExpandedKeys ] = useState<string[]>([FormTypeTreeData.key, 'schema', 'Form.items', 'FormLayout']);
 
   return (
     <div>

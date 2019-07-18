@@ -71,6 +71,7 @@ const getFormItemElement = function (formItem: FormItem | Array<FormItem>, entri
       extra,
       valuePropName,
       wrapperCol,
+      labelCol,
       initialValue,
       span,
       validators,
@@ -82,7 +83,15 @@ const getFormItemElement = function (formItem: FormItem | Array<FormItem>, entri
     if (label) formItemProps.label = label;
     if (hasFeedback) formItemProps.hasFeedback = true;
     if (extra) formItemProps.extra = extra;
-    if (wrapperCol) formItemProps.wrapperCol = wrapperCol;
+    // compatiate with layouts in props.
+    if (wrapperCol || formChildrenProps.wrapperCol) {
+      formItemProps.wrapperCol = wrapperCol || formChildrenProps.wrapperCol
+      formChildrenProps && (formChildrenProps.wrapperCol = undefined);
+    };
+    if (labelCol || formChildrenProps.labelCol) {
+      formItemProps.labelCol = labelCol || formChildrenProps.labelCol;
+      formChildrenProps && (formChildrenProps.labelCol = undefined);
+    }
     if (gutter) formItemGutter = gutter;
 
     // field rules
@@ -116,7 +125,6 @@ const getFormItemElement = function (formItem: FormItem | Array<FormItem>, entri
   };
 `)
         }
-
       }
     });
 
@@ -397,7 +405,7 @@ const transformField = (fieldName: keyof TransformSchema, schema: TransformSchem
   }
 };
 
-const renderProps = (child, renderEntries) => {
+const renderProps = (child: Element, renderEntries: any) => {
   const props = child.props || {};
 
   return Object.keys(props).reduce((r, k) => {
@@ -416,8 +424,18 @@ const renderProps = (child, renderEntries) => {
       return r + ` ${k}={${JSON.stringify(prop)}}`;
     } else if (typeof prop === 'object') {
       const typeName = child.type.replace('.', '');
-      const propName = `${typeName[0].toLowerCase()}${typeName.slice(1)}${k[0].toUpperCase()}${k.slice(1)}Prop`;
-      renderEntries.declareMap[JSON.stringify(prop, null, 2)] = propName;
+      let propName = `${typeName[0].toLowerCase()}${typeName.slice(1)}${k[0].toUpperCase()}${k.slice(1)}Prop`;
+
+      while (Object.keys(renderEntries.declareMap).some((k) => renderEntries.declareMap[k] === propName)) {
+        propName += '1';
+      }
+      const declareMapKey = JSON.stringify(prop, null, 2);
+      if (renderEntries.declareMap[declareMapKey]) {
+        propName = declareMapKey;
+      } else {
+        renderEntries.declareMap[JSON.stringify(prop, null, 2)] = propName;
+      }
+
       return r + ` ${k}={${propName}}`;
     } 
 
@@ -596,4 +614,4 @@ const transform = (schema: TransformSchema, config: TransformConfig = {}) => {
   return content;
 }
 
-module.exports = transform;
+export default transform;

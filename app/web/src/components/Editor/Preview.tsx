@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactElement, ReactComponentElement } from 'react';
 import { connect } from 'dva';
 import { ConnectState } from '@/models/connect.d';
 import styles from './Preview.less';
@@ -13,10 +13,42 @@ type PreviewProps = {
   previewCode: string,
 }
 
+type PreviewState = {
+  hasError: boolean | Error;
+}
+
 class Preview extends React.Component<PreviewProps> {
+  state = {
+    hasError: false,
+  }
+
+  componentWillReceiveProps(nextProps: PreviewProps) {
+    if (nextProps.previewCode !== this.props.previewCode) {
+      this.setState({
+        hasError: false,
+      });
+    }
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: error };
+  }
+
   render() {
     const { previewCode } = this.props;
-    const Component = eval(previewCode);
+    const { hasError } = this.state;
+
+    let Component: any | null = null;
+
+    if (hasError) {
+      return null;
+    }
+
+    try {
+      Component = eval(previewCode);
+    } catch(err) {
+      Component = null;
+    }
 
     if (Component) {
       return (

@@ -1,47 +1,28 @@
 import React from 'react';
-import { Input, Divider, Button, Form } from 'antd';
+import { Input, Form } from 'antd';
+import { FormComponentProps } from 'antd/lib/form/Form'
 
-class HorizontalLoginForm extends React.Component {
-
-  handleSubmit = e => {
-    e.preventDefault();
-    this.props.form.validateFields((err, values) => {
-      if (!err) {
-        console.log('Received values of form: ', values);
-      }
-    });
+const DefaultForm = (props: FormComponentProps) => {
+  const { getFieldDecorator } = props.form;
+  const formLabelColProp = {
+    "span": 4
   };
+  const formWrapperColProp = {
+    "span": 14
+  };
+  return (
+    <Form labelCol={formLabelColProp} wrapperCol={formWrapperColProp}>
+      <Form.Item label="E-mail">
+        {getFieldDecorator('email', {
+          rules: [{ required: true, message: 'Please input your email!' }, { type: 'email', message: 'The input is not valid E-mail!' }],
+        })(
+          <Input />
+        )}
+      </Form.Item>
+    </Form>
+  );
+};
 
-  render() {
-    const { getFieldDecorator } = this.props.form;
-    return (
-      <Form layout="inline" onSubmit={this.handleSubmit}>
-        <Form.Item>
-          {getFieldDecorator('username', {
-            rules: [{ required: true, message: 'Please input your username!' }],
-          })(
-            <Input />
-          )}
-        </Form.Item>
-        <Form.Item>
-          {getFieldDecorator('password', {
-            rules: [{ required: true, message: 'Please input your password!' }],
-          })(
-            <Input type="password" />
-          )}
-        </Form.Item>
-        <Divider>
-          Text
-        </Divider>
-        <Form.Item>
-          <Button type="primary" htmlType="submit">
-            Log in
-          </Button>
-        </Form.Item>
-      </Form>
-    );
-  }
-}
+const WrappedDefaultForm = Form.create({ name: 'DefaultForm' })(DefaultForm);
 
-const WrappedHorizontalLoginForm = Form.create({ name: 'HorizontalLoginForm' })(HorizontalLoginForm);
-export default WrappedHorizontalLoginForm;
+export default WrappedDefaultForm;
