@@ -1,5 +1,5 @@
 import React, { ReactNode, useState } from 'react';
-import { Icon, Tree } from 'antd';
+import { Icon, Tree, Input } from 'antd';
 import styles from './HelpCenter.less';
 
 type TypeTreeNode = {
@@ -181,26 +181,72 @@ const TypeTreeData: TypeTreeNode[] = [{
   ]
 }];
 
-const renderTreeNodes = (nodeList: TypeTreeNode[]): ReactNode => {
+const renderTreeNodes = (nodeList: TypeTreeNode[], searchValue: string): ReactNode => {
   return nodeList.map(node => {
+    const title = <span dangerouslySetInnerHTML={{
+      __html: node.name.replace(new RegExp(searchValue, 'i'), `<mark>$&</mark>`)
+    }} />
+
     return (
-      <Tree.TreeNode title={node.name} key={node.key} data={node}>
-        {Array.isArray(node.children) ? renderTreeNodes(node.children) : null}
+      <Tree.TreeNode title={title} key={node.key} data={node}>
+        {Array.isArray(node.children) ? renderTreeNodes(node.children, searchValue) : null}
       </Tree.TreeNode>
     )
   }); 
+}
+
+const findSearchExpandedKeys = (children: TypeTreeNode[], value: string): string[] => {
+  let ret: string[] = [];
+
+  children.forEach(node => {
+    // if the node fulfills the search condition.
+    if (node.name.toLowerCase().indexOf(value.toLowerCase()) >= 0) {
+      ret.push(node.key);
+    }
+
+    if (Array.isArray(node.children)) {
+      const childrenKeys = findSearchExpandedKeys(node.children, value);
+
+      if (childrenKeys.length > 0) {
+        ret.push(node.key);
+        ret = ret.concat(childrenKeys);
+      }
+    }
+  })
+
+  return ret;
 }
 
 const DocTree = () => {
   const [ selectedNode, setSelectedNode ] = useState<TypeTreeNode | null>(FormTypeTreeData);
   const [ selectedKeys, setSelectedKeys ] = useState<string[]>([FormTypeTreeData.key]);
   const [ expandedKeys, setExpandedKeys ] = useState<string[]>([FormTypeTreeData.key, 'schema', 'Form.items', 'FormLayout']);
+  const [ searchValue, setSearchValue ] = useState<string>('');
+  const [ searchExpandedKeys, setSearchExpandedKeys ] = useState<string[]>([]);
+
+  const searchWorldChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
+    const value = evt.target.value;
+
+    if (!!value) {
+      setSearchExpandedKeys(findSearchExpandedKeys([FormTypeTreeData], value));
+      setSearchValue(value);
+    } else {
+      setSearchExpandedKeys([]);
+      setSearchValue('');
+    }
+  }
 
   return (
     <div>
+      <Input.Search
+        placeholder="Search..."
+        onChange={searchWorldChange}
+        style={{ width: 316, marginLeft: 5 }}
+      />
+
       <Tree
         selectedKeys={selectedKeys}
-        expandedKeys={expandedKeys}
+        expandedKeys={[...new Set([...expandedKeys, ...searchExpandedKeys, 'schema'])]} // schema can not be close.
         onSelect={(selectedKeys, e) => {
           setSelectedKeys(selectedKeys);
           setSelectedNode(e.node.props.data as TypeTreeNode);
@@ -209,25 +255,27 @@ const DocTree = () => {
           setExpandedKeys(expandedKeys);
         }}
       >
-        {renderTreeNodes(TypeTreeData)}
+        {renderTreeNodes(TypeTreeData, searchValue)}
       </Tree>
 
-        {selectedNode ? (
-          <div className={styles.nodeContent}>
-            <div><span className={styles.nodeName}>{selectedNode.name}</span> <span className={styles.trigger}>Trigger: {selectedNode.trigger}</span></div>
-            <div className={styles.nodeDescription}>{selectedNode.description}</div>
-            <pre className={styles.typescript}>{selectedNode.typescript}</pre>
-          </div>
-        ) : null}
+      {selectedNode ? (
+        <div className={styles.nodeContent}>
+          <div><span className={styles.nodeName}>{selectedNode.name}</span> <span className={styles.trigger}>Trigger: {selectedNode.trigger}</span></div>
+          <div className={styles.nodeDescription}>{selectedNode.description}</div>
+          <pre className={styles.typescript}>{selectedNode.typescript}</pre>
+        </div>
+      ) : null}
     </div>
   )
 }
+
+const stopPropagation: React.MouseEventHandler = (evt) => evt.stopPropagation();
 
 const HelpCenter = () => {
   return (
     <div
       className={styles.container}
-      onClick={evt => evt.stopPropagation()} // prevent trigger switch edtior focus.
+      onClick={stopPropagation} // prevent trigger switch edtior focus.
     >
       <div className={styles.head1}>Create the config</div>
       <p>With the empty config created (by click the {<Icon type="question-circle" />}), create your form config like so:</p>

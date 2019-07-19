@@ -1,5 +1,5 @@
 import React, { MouseEventHandler, ReactNode, ReactElement } from 'react';
-import { Icon } from 'antd';
+import { Icon, Button } from 'antd';
 import CodeEditor from '@/components/Editor/CodeEditor';
 import ConfigEditor from '@/components/Editor/ConfigEditor';
 import { Spring } from 'react-spring/renderprops'
@@ -63,6 +63,7 @@ class BuildPage extends React.Component {
         <div>
           <Icon type="profile" theme="filled" />
           <div><span style={{ color: 'black', fontWeight: 500, fontSize: '16px', display: 'inline-block', marginRight: 5 }}>Form Builder</span> Build your own forms quickly.</div>
+          <Button style={{ color: 'black', marginLeft: 'auto' }} type="link" onClick={() => window.open('https://github.com/dilidili/ant-design-draft', '_blank')}><Icon type="github" /></Button>
         </div>
       </div>
     )
