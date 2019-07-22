@@ -57,7 +57,7 @@ class Preview extends React.Component<PreviewProps> {
         </div>
       );
     } else {
-      return null;
+      return <div className={styles.container} />;
     }
   }
 }
