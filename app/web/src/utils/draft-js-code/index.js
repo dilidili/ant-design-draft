@@ -3,5 +3,6 @@ module.exports = {
   hasSelectionInBlock: require('./hasSelectionInBlock'),
   handleKeyCommand: require('./handleKeyCommand'),
   handleReturn: require('./handleReturn'),
-  onTab: require('./onTab')
+  onTab: require('./onTab'),
+  renderSpaceDecorator: require('./renderSpaceDecorator').default,
 };

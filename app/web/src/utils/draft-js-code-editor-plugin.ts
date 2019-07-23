@@ -11,6 +11,7 @@ type Command = string;
 
 const createCodeEditorPlugin = (options?: Options) => {
   return {
+    decorators: [CodeUtils.renderSpaceDecorator],
     handleKeyCommand(command: Command, editorState: EditorState, { setEditorState }: PluginFunctions) {
       let newState;
 

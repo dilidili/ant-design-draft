@@ -2,7 +2,7 @@
 
 A tool simplifies the procedures of creating business form based on [Ant Design](https://github.com/ant-design/ant-design).
 
-## Online Demo
+## Try it out
 [http://drafter.fun](http://drafter.fun)
 
 ## Features
