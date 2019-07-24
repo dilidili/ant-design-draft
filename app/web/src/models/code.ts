@@ -32,6 +32,7 @@ export interface ModelType {
   effects: {
     changeEditorState: EffectWithType;
     changeReactApi: EffectWithType;
+    prettifyConfigEditor: Effect;
     resetConfigEditor: Effect;
     loadConfigCode: Effect;
   };
@@ -73,6 +74,26 @@ const Model: ModelType = {
           type: 'changeEditorState',
           payload: editorState,
         });
+      }
+    },
+
+    *prettifyConfigEditor(_, { select, put }) {
+      const prettier = yield import('prettier/standalone');
+      const plugins = [yield import("prettier/parser-typescript")]
+
+      let editorState: EditorState = yield select(
+        state => state.code.editorState,
+      );
+      try {
+        const formattedConfig = prettier.format(editorState.getCurrentContent().getPlainText(), { parser: 'typescript', plugins: plugins, singleQuote: true, trailingComma: 'all' });
+        editorState = EditorState.createWithContent(ContentState.createFromText(formattedConfig), editorState ? editorState.getDecorator() : undefined);
+
+        yield put({
+          type: 'changeEditorState',
+          payload: editorState,
+        });
+      } catch (err) {
+        console.error(err);
       }
     },
 

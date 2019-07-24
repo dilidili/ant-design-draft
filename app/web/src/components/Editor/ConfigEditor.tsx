@@ -27,6 +27,8 @@ interface ConfigEdtiorState {
   suggestions: any,
 }
 
+const stopPropagationListener: MouseEventHandler = (evt) => evt.stopPropagation;
+
 const MentionEntry = (props: { mention: Mention, theme: any }) => {
   const {
     mention,
@@ -129,6 +131,14 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState>
     });
   }
 
+  handleFormatContent: MouseEventHandler = () => {
+    const { dispatch } = this.props;
+
+    dispatch({
+      type: 'code/prettifyConfigEditor',
+    });
+  }
+
   renderEditor() {
     const { plugins, suggestions }: any = this.state;
     const { editorState } = this.props;
@@ -173,7 +183,7 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState>
     return (
       <div className={styles.container} onClick={onFocus}>
         {/* header */}
-        <div className={styles.header} onClick={(evt) => evt.stopPropagation()}>
+        <div className={styles.header} onClick={stopPropagationListener}>
           <div className={styles.icons}>
             <span className={styles.close} />
             <span className={styles.minimize} />
@@ -181,13 +191,16 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState>
           </div>
           <div className={styles.title}>Config</div>
 
-          {/* reset content */}
           <Tooltip title="reset">
-            <Icon type="rollback" className={styles.resetButton} onClick={this.handleResetContent}/>
+            <Icon type="rollback" className={styles.resetButton} onClick={this.handleResetContent} />
+          </Tooltip>
+
+          <Tooltip title="format">
+            <Icon type="menu-unfold" className={styles.formatButton} onClick={this.handleFormatContent} />
           </Tooltip>
 
           <Tooltip title="help">
-            <Icon type="question-circle" className={styles.helpButton} onClick={this.showHelpDrawer}/>
+            <Icon type="question-circle" className={styles.helpButton} onClick={this.showHelpDrawer} />
           </Tooltip>
         </div>
 
