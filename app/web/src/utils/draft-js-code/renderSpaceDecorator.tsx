@@ -3,23 +3,18 @@ import { ContentBlock, ContentState } from 'draft-js';
 import styles from './SpaceSpan.less';
 
 class SpaceSpan extends React.Component<{
-  childrent: React.ReactChildren;
+  children: React.ReactChildren;
 }> {
   render() {
-    return <span className={styles.space}>·</span>
-    return <span className={styles.space}>{this.props.children}</span>;
+    return <span className={styles.space}>{this.props.children}</span>
   }
 }
 
 function spaceStrategy(contentBlock: ContentBlock, callback: Function, contentState: ContentState) {
   const text = contentBlock.getText();
-  let char, ii = 0;
-  while((char = text[ii])) {
-    if (char === ' ') {
+  for(let ii = 0; ii < text.length; ii ++) {
+    if (text[ii] === ' ') {
       callback(ii, ii + 1);
-      ii++;
-    } else {
-      break;
     }
   }
 }
