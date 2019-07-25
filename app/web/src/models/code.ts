@@ -54,8 +54,11 @@ const Model: ModelType = {
   },
 
   effects: {
-    *resetConfigEditor(_, { put }) {
-      const editorState = EditorState.createWithContent(ContentState.createFromText(EMPTY_CONFIG_TEXT));
+    *resetConfigEditor(_, { put, select }) {
+      let editorState: EditorState = yield select(
+        state => state.code.editorState,
+      );
+      editorState = EditorState.push(editorState, ContentState.createFromText(EMPTY_CONFIG_TEXT), 'delete-character');
 
       yield put({
         type: 'changeEditorState',
@@ -86,7 +89,7 @@ const Model: ModelType = {
       );
       try {
         const formattedConfig = prettier.format(editorState.getCurrentContent().getPlainText(), { parser: 'typescript', plugins: plugins, singleQuote: true, trailingComma: 'all' });
-        editorState = EditorState.createWithContent(ContentState.createFromText(formattedConfig), editorState ? editorState.getDecorator() : undefined);
+        editorState = EditorState.push(editorState, ContentState.createFromText(formattedConfig), 'spellcheck-change');
 
         yield put({
           type: 'changeEditorState',
