@@ -8,6 +8,7 @@ import { EditorState } from 'draft-js';
 import { connect } from 'dva';
 import { Dispatch } from 'redux';
 import { ConnectState } from '@/models/connect';
+import { HighlightLinesType } from '@/models/code';
 import Prism from 'prismjs';
 import Editor from 'draft-js-plugins-editor';
 import { Tooltip, Icon, Drawer } from 'antd';
@@ -16,6 +17,7 @@ import HelpCenter from './HelpCenter';
 
 interface ConfigEdtiorProps {
   editorState: EditorState,
+  highlightLines: HighlightLinesType,
   saveConfigCode: string,
   dispatch: Dispatch,
   onFocus?: MouseEventHandler,
@@ -139,6 +141,25 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState>
     });
   }
 
+  renderHighlightLines() {
+    const { highlightLines } = this.props;
+
+    if (!highlightLines) return null;
+
+    const {
+      start: {
+        line: startLine,
+      },
+      end: {
+        line: endLine,
+      }
+    } = highlightLines;
+
+    return (
+      <div style={{ position: 'absolute', top: 10 + startLine * 21, height: (endLine - startLine + 1) * 21, left: 10, right: 10, background: 'rgba(69, 142, 225, 0.1)' }} />
+    )
+  }
+
   renderEditor() {
     const { plugins, suggestions }: any = this.state;
     const { editorState } = this.props;
@@ -156,6 +177,7 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState>
           suggestions={suggestions}
           entryComponent={MentionEntry}
         />
+        {this.renderHighlightLines()}
       </div>
     )
   }
@@ -217,5 +239,6 @@ export default connect(({ code, save }: ConnectState) => {
   return {
     editorState: code.editorState,
     saveConfigCode: save.configCode,
+    highlightLines: code.highlightLines,
   }
 })(ConfigEditor);

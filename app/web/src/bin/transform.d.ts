@@ -62,13 +62,16 @@ export type FormItem = {
   valuePropName?: string | Array<any>;
   initialValue?: string | Array<any>;
   items: [any];
-  props: any;
+  props: any | {
+    [key: string]: any;
+  };
 }
 
 export type TransformConfig = {
   reactApi?: 'Hooks' | 'Component';
   env?: 'browser';
   useTypescript?: boolean;
+  source?: string; // need when env is 'browser'.
 }
 
 export type Entries = {

@@ -1,4 +1,6 @@
 const Mustache = require('mustache');
+import { parse } from '@babel/parser';
+import { VariableDeclaration, ObjectExpression, ObjectProperty } from '@babel/types';
 import { FormSchema, TransformSchema, FormItem, TransformConfig, Entries, FormSchemaProps, Element, FormInModalSchema } from './transform.d';
 import { FormItemProps } from 'antd/lib/form/FormItem';
 
@@ -12,7 +14,7 @@ const decodeLiteralPrimative = (value: string | Array<any>) => {
   }
 };
 
-const getFormItemElement = function (formItem: FormItem | Array<FormItem>, entries: Entries, formProps: FormSchemaProps , config: TransformConfig): Element {
+const getFormItemElement = function (formItem: FormItem | Array<FormItem>, entries: Entries, formProps: FormSchemaProps , config: TransformConfig, ast?: any): Element {
   let formItemChildren: Element[] = [];
   let formItemProps: FormItemProps = {};
   let formItemGutter;
@@ -239,7 +241,7 @@ const getFormItemElement = function (formItem: FormItem | Array<FormItem>, entri
     formItemChildren = formItemChildren.concat(children);
   })
 
-  let formItemElement = {
+  let formItemElement: Element = {
     type: 'Form.Item',
     children: formItemChildren,
     props: formItemProps,
@@ -257,10 +259,28 @@ const getFormItemElement = function (formItem: FormItem | Array<FormItem>, entri
     }]
   }
 
+  if (config.env === 'browser' && ast) {
+    formItemElement = {
+      type: 'div',
+      children: [formItemElement],
+      props: {
+        'onMouseEnter': {
+          type: 'reference',
+          payload: `() => window.highLightLines && window.highLightLines(\`${JSON.stringify(ast.loc)}\`)`
+        },
+        'onMouseLeave': {
+          type: 'reference',
+          payload: `() => window.highLightLines && window.highLightLines("null")`
+        },
+      },
+    }
+  }
+
+
   return formItemElement;
 }
 
-const transformFormField = (fieldValue: FormSchema, entries: Entries, config: TransformConfig) => {
+const transformFormField = (fieldValue: FormSchema, entries: Entries, config: TransformConfig, ast?: any) => {
   const {
     items,
     props: formProps = {},
@@ -272,12 +292,22 @@ const transformFormField = (fieldValue: FormSchema, entries: Entries, config: Tr
     children: [],
   };
 
+  let itemsAst: any[] | undefined;
+  if (ast) {
+    try {
+      itemsAst = ast.properties.find((p: any) => p.key.name === 'items').value.elements;
+    } catch(err) {
+      itemsAst = undefined;
+    }
+  }
+
   // FormItem
   if (items && items.length) {
-    items.forEach(formItem => {
-      const formItemElement = getFormItemElement(formItem, entries, formProps, config);
+    items.forEach((formItem, index) => {
+      const itemAst = itemsAst ? itemsAst[index] : undefined;
+      const formItemElement = getFormItemElement(formItem, entries, formProps, config, itemAst);
       Array.isArray(formElement.children) && formElement.children.push(formItemElement);
-    });
+    })
   }
 
   entries.antdImports.add('Form');
@@ -390,10 +420,20 @@ const transformFormInModalField = (fieldValue: FormInModalSchema, entries: Entri
   }
 }
 
-const transformField = (fieldName: keyof TransformSchema, schema: TransformSchema, entries: Entries, config: TransformConfig) => {
+const transformField = (fieldName: keyof TransformSchema, schema: TransformSchema, entries: Entries, config: TransformConfig, ast?: any) => {
+  let nextAst;
+
   switch(fieldName) {
     case 'form':
-      transformFormField(schema.form, entries, config);
+      if (ast) {
+        try {
+          nextAst = ast.properties.find((v: any) => v.key.name === 'form').value;
+        } catch(err) {
+          nextAst = undefined;
+        }
+      }
+
+      transformFormField(schema.form, entries, config, nextAst);
       break;
     case 'formInModal':
       transformFormInModalField(schema.formInModal, entries, config);
@@ -584,7 +624,7 @@ const ${view.componentType}Modal = (props: ${view.componentType}ModalProps) => {
 }
 
 const transform = (schema: TransformSchema, config: TransformConfig = {}) => {
-  const entries = {
+  const entries: Entries = {
     componentType: '',
     template: '',
     formTsProps: '',
@@ -604,8 +644,18 @@ const transform = (schema: TransformSchema, config: TransformConfig = {}) => {
     formTsWrapper: () => (text: string, render: (content: string) => string) => render(text),
   };
 
+
+  let ast: any;
+  if (config.env === 'browser' && config.source) {
+    try {
+      ast =(parse(config.source).program.body[0] as VariableDeclaration).declarations[0].init as ObjectExpression;
+    } catch(err) {
+      ast = undefined;
+    }
+  }
+
   Object.keys(schema).forEach((key) => {
-    transformField(key as keyof TransformSchema, schema, entries, config);
+    transformField(key as keyof TransformSchema, schema, entries, config, ast);
   });
 
   // generate

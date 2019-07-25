@@ -11,15 +11,24 @@ import 'antd/es/divider/style';
 
 type PreviewProps = {
   previewCode: string,
-}
-
-type PreviewState = {
-  hasError: boolean | Error;
+  dispatch: Function,
 }
 
 class Preview extends React.Component<PreviewProps> {
   state = {
     hasError: false,
+  }
+
+  componentDidMount() {
+    const { dispatch } = this.props;
+    (window as any).highLightLines = (payload: string) => {
+      try {
+        dispatch({
+          type: 'code/updateHighlightLines',
+          payload: JSON.parse(payload),
+        });
+      } catch(err) {}
+    }
   }
 
   componentWillReceiveProps(nextProps: PreviewProps) {

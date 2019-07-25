@@ -1,4 +1,4 @@
-import { EditorState, convertToRaw, convertFromRaw, ContentState } from 'draft-js';
+import { EditorState, convertFromRaw, ContentState } from 'draft-js';
 import { transform } from '@babel/standalone';
 import transformSchema from '@/bin/transform';
 import { Effect, EffectWithType, Reducer, ConnectState } from './connect.d';
@@ -20,10 +20,22 @@ export enum ReactAPI {
 
 const delay = (ms: number, val: [any]) => new Promise(res => setTimeout(() => res(val), ms));
 
+export type HighlightLinesType = {
+  start: {
+    line: number;
+    column: number;
+  };
+  end: {
+    line: number;
+    column: number;
+  }
+} | null
+
 export interface CodeModelState {
   editorState: EditorState, // config editor
   generatedCode: EditorState, // user will copy this
   previewCode: string, // use to render preview components
+  highlightLines: HighlightLinesType,
 }
 
 export interface ModelType {
@@ -41,6 +53,7 @@ export interface ModelType {
     changeCodeEditorState: Reducer<CodeModelState>;
     updatePreviewCode: Reducer<CodeModelState>;
     updateGeneratedCode: Reducer<CodeModelState>;
+    updateHighlightLines: Reducer<CodeModelState>;
   };
 }
 
@@ -51,6 +64,7 @@ const Model: ModelType = {
     editorState: EditorState.createWithContent(convertFromRaw(JSON.parse(demoRawContent))),
     generatedCode: EditorState.createEmpty(),
     previewCode: '',
+    highlightLines: null,
   },
 
   effects: {
@@ -143,7 +157,7 @@ const Model: ModelType = {
               });
 
               // preview code
-              const code = transform(transformSchema(eval(configCode), { env: 'browser', }), {
+              const code = transform(transformSchema(eval(configCode), { env: 'browser', source: configCode }), {
                 presets: [
                   'es2015',
                   'react',
@@ -174,14 +188,12 @@ const Model: ModelType = {
 
   reducers: {
     changeEditorState(state: CodeModelState, { payload }): CodeModelState {
-      // console.log(JSON.stringify(convertToRaw(payload.getCurrentContent())));
       return {
         ...state,
         editorState: payload,
       };
     },
     changeCodeEditorState(state: CodeModelState, { payload }): CodeModelState {
-      // console.log(JSON.stringify(convertToRaw(payload.getCurrentContent())));
       return {
         ...state,
         generatedCode: payload,
@@ -199,6 +211,12 @@ const Model: ModelType = {
         generatedCode: payload ? EditorState.createWithContent(ContentState.createFromText(payload)) : EditorState.createEmpty(),
       }
     },
+    updateHighlightLines(state: CodeModelState, { payload }): CodeModelState {
+      return {
+        ...state,
+        highlightLines: payload,
+      }
+    }
   },
 };
 
