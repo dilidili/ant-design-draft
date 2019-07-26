@@ -1,6 +1,10 @@
 import CodeUtils from './draft-js-code';
+import { Dispatch } from 'redux';
 
-type Options = {};
+type Options = {
+  getDispatch?: () => Dispatch,
+  toggleHelper?: Function,
+};
 
 type EditorState = Object;
 type PluginFunctions = {
@@ -15,7 +19,7 @@ const createCodeEditorPlugin = (options?: Options) => {
     handleKeyCommand(command: Command, editorState: EditorState, { setEditorState }: PluginFunctions) {
       let newState;
 
-      newState = CodeUtils.handleKeyCommand(editorState, command);
+      newState = CodeUtils.handleKeyCommand(editorState, command, options);
 
       if (newState) {
         setEditorState(newState);

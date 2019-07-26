@@ -11,6 +11,7 @@ import { ConnectState } from '@/models/connect';
 import { HighlightLinesType } from '@/models/code';
 import Prism from 'prismjs';
 import Editor from 'draft-js-plugins-editor';
+import { Spring } from 'react-spring/renderprops'
 import { Tooltip, Icon, Drawer } from 'antd';
 import mentions, { Mention } from './mentions';
 import HelpCenter from './HelpCenter';
@@ -80,7 +81,10 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState>
         createPrismPlugin({
           prism: Prism
         }),
-        createCodeEditorPlugin(),
+        createCodeEditorPlugin({
+          getDispatch: () => this.props.dispatch,
+          toggleHelper: () => this.setState({ helpDrawerVisible: !this.state.helpDrawerVisible }),
+        }),
         createUndoPlugin(),
       ],
       suggestions: [],
@@ -144,19 +148,29 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState>
   renderHighlightLines() {
     const { highlightLines } = this.props;
 
-    if (!highlightLines) return null;
-
-    const {
-      start: {
-        line: startLine,
-      },
-      end: {
-        line: endLine,
-      }
-    } = highlightLines;
-
     return (
-      <div style={{ position: 'absolute', top: 10 + (startLine - 1) * 21, height: (endLine - startLine + 1) * 21, left: 10, right: 10, background: 'rgba(69, 142, 225, 0.1)' }} />
+      <Spring<{ opacity: number }>
+        to={{
+          opacity: highlightLines ? 1 : 0,
+        }}
+      >
+        {props => {
+          if (highlightLines) {
+            const {
+              start: {
+                line: startLine,
+              },
+              end: {
+                line: endLine,
+              }
+            } = highlightLines;
+
+            return <div style={{ position: 'absolute', opacity: props.opacity, top: 10 + (startLine - 1) * 21, height: (endLine - startLine + 1) * 21, left: 10, right: 10, background: 'rgba(69, 142, 225, 0.1)' }} />;
+          } else {
+            return <div style={{ opacity: props.opacity }} />
+          }
+        }}
+      </Spring>
     )
   }
 
@@ -217,11 +231,11 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState>
             <Icon type="rollback" className={styles.resetButton} onClick={this.handleResetContent} />
           </Tooltip>
 
-          <Tooltip title="format">
+          <Tooltip title="format(shift + meta + f)">
             <Icon type="menu-unfold" className={styles.formatButton} onClick={this.handleFormatContent} />
           </Tooltip>
 
-          <Tooltip title="help">
+          <Tooltip title="help(meta + /)">
             <Icon type="question-circle" className={styles.helpButton} onClick={this.showHelpDrawer} />
           </Tooltip>
         </div>

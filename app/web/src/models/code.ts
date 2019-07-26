@@ -1,4 +1,4 @@
-import { EditorState, convertFromRaw, ContentState } from 'draft-js';
+import { EditorState, convertFromRaw, ContentState, SelectionState } from 'draft-js';
 import { transform } from '@babel/standalone';
 import transformSchema from '@/bin/transform';
 import { Effect, EffectWithType, Reducer, ConnectState } from './connect.d';
@@ -101,9 +101,35 @@ const Model: ModelType = {
       let editorState: EditorState = yield select(
         state => state.code.editorState,
       );
+
+      // remember prev selection position, recover it after formatting.
+      const prevSelection = editorState.getSelection();
+      const prevContentState = editorState.getCurrentContent();
+
+      const prevLine = prevContentState.getBlocksAsArray().findIndex(v => v.getKey() === prevSelection.getStartKey());
+      const prevOffeset = prevSelection.getStartOffset();
+
       try {
         const formattedConfig = prettier.format(editorState.getCurrentContent().getPlainText(), { parser: 'typescript', plugins: plugins, singleQuote: true, trailingComma: 'all' });
-        editorState = EditorState.push(editorState, ContentState.createFromText(formattedConfig), 'spellcheck-change');
+        editorState = EditorState.push(
+          editorState,
+          ContentState.createFromText(formattedConfig),
+          'spellcheck-change'
+        );
+
+
+        const afterBlockArray = editorState.getCurrentContent().getBlocksAsArray();
+        const targetBlock = afterBlockArray[prevLine] || afterBlockArray[0];
+
+        if (targetBlock) {
+          editorState = EditorState.forceSelection(editorState, new SelectionState({
+            anchorKey: targetBlock.getKey(),
+            anchorOffset: targetBlock.getCharacterList().size >= prevOffeset ? prevOffeset : 0,
+            focusKey: targetBlock.getKey(),
+            focusOffset: targetBlock.getCharacterList().size >= prevOffeset ? prevOffeset : 0,
+            isBackward: false,
+          }));
+        }
 
         yield put({
           type: 'changeEditorState',

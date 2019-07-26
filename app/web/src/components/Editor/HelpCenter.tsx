@@ -239,6 +239,7 @@ const DocTree = () => {
   return (
     <div>
       <Input.Search
+        autoFocus
         placeholder="Search..."
         onChange={searchWorldChange}
         style={{ width: 316, marginLeft: 5 }}

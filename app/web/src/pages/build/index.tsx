@@ -143,7 +143,7 @@ class BuildPage extends React.Component {
         <div>
           {this.renderHeader()}
 
-          <div style={{ padding: '0 40px' }}>
+          <div style={{ padding: '0 80px' }}>
             <ClickOutsideWrapper handleClickOutside={this.handleClickOutside}>
               {this.renderContent()}
             </ClickOutsideWrapper>

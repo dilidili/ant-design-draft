@@ -7,9 +7,21 @@ var removeIndent = require('./utils/removeIndent');
  * @param {String} command
  * @return {Boolean}
  */
-function handleKeyCommand(editorState, command) {
+function handleKeyCommand(editorState, command, options) {
   if (command === 'backspace') {
     return removeIndent(editorState);
+  } else if (command === 'format-code') {
+    if (options && options.getDispatch) {
+      const dispatch = options.getDispatch();
+
+      dispatch({
+        type: 'code/prettifyConfigEditor',
+      });
+    }
+  } else if (command === 'toggle-helper') {
+    if (options && options.toggleHelper) {
+      options.toggleHelper();
+    }
   }
 }
 
