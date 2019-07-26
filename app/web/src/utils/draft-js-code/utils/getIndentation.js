@@ -8,8 +8,9 @@ var DEFAULT_INDENTATION = '  ';
  * @return {String}
  */
 function getIndentation(text) {
-  var result = detectIndent(text);
-  return result.indent || DEFAULT_INDENTATION;
+  // var result = detectIndent(text);
+  return DEFAULT_INDENTATION;
+  // return result.indent || DEFAULT_INDENTATION;
 }
 
 module.exports = getIndentation;
