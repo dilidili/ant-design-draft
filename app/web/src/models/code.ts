@@ -157,7 +157,7 @@ const Model: ModelType = {
               });
 
               // preview code
-              const code = transform(transformSchema(eval(configCode), { env: 'browser', source: configCode }), {
+              const code = transform(transformSchema(eval(configCode), { env: 'browser', source: configText }), {
                 presets: [
                   'es2015',
                   'react',

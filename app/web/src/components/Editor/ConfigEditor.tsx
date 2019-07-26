@@ -156,7 +156,7 @@ class ConfigEditor extends React.Component<ConfigEdtiorProps, ConfigEdtiorState>
     } = highlightLines;
 
     return (
-      <div style={{ position: 'absolute', top: 10 + startLine * 21, height: (endLine - startLine + 1) * 21, left: 10, right: 10, background: 'rgba(69, 142, 225, 0.1)' }} />
+      <div style={{ position: 'absolute', top: 10 + (startLine - 1) * 21, height: (endLine - startLine + 1) * 21, left: 10, right: 10, background: 'rgba(69, 142, 225, 0.1)' }} />
     )
   }
 

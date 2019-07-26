@@ -1,8 +1,21 @@
 const Mustache = require('mustache');
 import { parse } from '@babel/parser';
-import { VariableDeclaration, ObjectExpression, ObjectProperty } from '@babel/types';
+import { VariableDeclaration, ObjectExpression, SourceLocation } from '@babel/types';
 import { FormSchema, TransformSchema, FormItem, TransformConfig, Entries, FormSchemaProps, Element, FormInModalSchema } from './transform.d';
 import { FormItemProps } from 'antd/lib/form/FormItem';
+
+const getSourceLocationProps = (loc: SourceLocation) => {
+  return {
+    'onMouseEnter': {
+      type: 'reference',
+      payload: `() => window.highLightLines && window.highLightLines(\`${JSON.stringify(loc)}\`)`
+    },
+    'onMouseLeave': {
+      type: 'reference',
+      payload: `() => window.highLightLines && window.highLightLines("null")`
+    },
+  }
+};
 
 const decodeLiteralPrimative = (value: string | Array<any>) => {
   if (typeof value === 'string') {
@@ -26,6 +39,15 @@ const getFormItemElement = function (formItem: FormItem | Array<FormItem>, entri
       const { layout, items, props } = formItem;
       entries.antdImports.add('Row');
       entries.antdImports.add('Col');
+
+      let itemsAst: any[] | undefined;
+      if (ast) {
+        try {
+          itemsAst = ast.properties.find((p: any) => p.key.name === 'items').value.elements;
+        } catch(err) {
+          itemsAst = undefined;
+        }
+      }
   
       const rowChildren = items.map((col, k) => {
         return {
@@ -33,7 +55,7 @@ const getFormItemElement = function (formItem: FormItem | Array<FormItem>, entri
           props: {
             span: layout[k],
           },
-          children: [getFormItemElement(col, entries, formProps, config)],
+          children: [getFormItemElement(col, entries, formProps, config, itemsAst ? itemsAst[k] : undefined)],
         }
       })
   
@@ -264,14 +286,7 @@ const getFormItemElement = function (formItem: FormItem | Array<FormItem>, entri
       type: 'div',
       children: [formItemElement],
       props: {
-        'onMouseEnter': {
-          type: 'reference',
-          payload: `() => window.highLightLines && window.highLightLines(\`${JSON.stringify(ast.loc)}\`)`
-        },
-        'onMouseLeave': {
-          type: 'reference',
-          payload: `() => window.highLightLines && window.highLightLines("null")`
-        },
+        ...(getSourceLocationProps(ast.loc)),
       },
     }
   }
