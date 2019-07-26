@@ -71,15 +71,16 @@ class BuildPage extends React.Component {
 
   renderContent() {
     const { currentVisibleTab } = this.state;
-    const widthPerTab = ~~(90 / currentVisibleTab.size) + '%';
+    const widthPerTab = ~~((100 - 3 * (currentVisibleTab.size - 1)) / currentVisibleTab.size) + '%';
 
     return (
       <div className={styles.content}>
         {/* config input */}
-        <Spring<{ height?: string, overflow?: string, opacity: number, width: string }>
+        <Spring<{ height?: string, overflow?: string, opacity: number, width: string, marginLeft: string }>
           to={{
             opacity: currentVisibleTab.has(BuildPageTab.ConfigEditor) ? 1 : 0,
             width: currentVisibleTab.has(BuildPageTab.ConfigEditor) ? widthPerTab : '0%',
+            marginLeft: !currentVisibleTab.has(BuildPageTab.CodeEditor) ? '1.5%' : '0%',
           }}
           after={!currentVisibleTab.has(BuildPageTab.ConfigEditor) ? { height: '0px', overflow: 'hidden' } : {}}
         >
@@ -142,9 +143,11 @@ class BuildPage extends React.Component {
         <div>
           {this.renderHeader()}
 
-          <ClickOutsideWrapper handleClickOutside={this.handleClickOutside}>
-            {this.renderContent()}
-          </ClickOutsideWrapper>
+          <div style={{ padding: '0 40px' }}>
+            <ClickOutsideWrapper handleClickOutside={this.handleClickOutside}>
+              {this.renderContent()}
+            </ClickOutsideWrapper>
+          </div>
         </div>
       </DocumentTitle>
     )
