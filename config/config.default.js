@@ -41,5 +41,9 @@ module.exports = appInfo => {
     '/favicon.ico': fs.readFileSync(path.join(__dirname, './favicon.png')),
   };
 
+  config.paths = {
+    tempDir: '/tmp/fun.drafter',
+  }
+
   return config;
 };
