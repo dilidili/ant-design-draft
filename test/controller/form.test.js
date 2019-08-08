@@ -13,7 +13,11 @@ describe('test/controller/form.test.js', () => {
     return app.httpRequest()
       .post('/form/analyze')
       .attach('file', path.join(__dirname, '../resource/case_simple.png'))
-      .expect(200);
+      .expect(200)
+      .then(response => {
+        assert(response.body.code === 0);
+        assert(Array.isArray(response.body.data));
+      })
   });
 
   after(() => app.close());
