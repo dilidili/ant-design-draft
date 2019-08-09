@@ -1,6 +1,7 @@
-import React, { ReactElement, ReactComponentElement } from 'react';
+import React, { ReactElement, ReactComponentElement, MouseEventHandler } from 'react';
 import { connect } from 'dva';
 import { ConnectState } from '@/models/connect.d';
+import { Tooltip, Icon, Upload } from 'antd';
 import styles from './Preview.less';
 
 // import stylesheets for preview components.
@@ -8,6 +9,8 @@ import 'antd/es/date-picker/style';
 import 'antd/es/divider/style';
 (window as any).React = React;
 (window as any).AntD = require('antd');
+
+const stopPropagationListener: MouseEventHandler = (evt) => evt.stopPropagation;
 
 type PreviewProps = {
   previewCode: string,
@@ -43,7 +46,7 @@ class Preview extends React.Component<PreviewProps> {
     return { hasError: error };
   }
 
-  render() {
+  renderPreviewContent() {
     const { previewCode } = this.props;
     const { hasError } = this.state;
 
@@ -61,13 +64,45 @@ class Preview extends React.Component<PreviewProps> {
 
     if (Component) {
       return (
-        <div className={styles.container}>
+        <div className={styles.previewContent}>
           <Component />
         </div>
       );
     } else {
-      return <div className={styles.container} />;
+      return null;
     }
+  }
+
+  renderHeader() {
+    const uploadProps = {
+      name: 'file',
+      action: '/form/analyze',
+      accept: 'image/png',
+      multiple: false,
+      onChange(info: any) {
+        console.log(info);
+      },
+      showUploadList: false,
+    }
+
+    return (
+      <div className={styles.header} onClick={stopPropagationListener}>
+        <Tooltip title="build by image">
+          <Upload className={styles.uploadButton} {...uploadProps}>
+            <Icon type="file-image" />
+          </Upload>
+        </Tooltip>
+      </div>
+    )
+  }
+
+  render() {
+    return (
+      <div className={styles.container}>
+        {this.renderHeader()}
+        {this.renderPreviewContent()}
+      </div>
+    ) 
   }
 }
 

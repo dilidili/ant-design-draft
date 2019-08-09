@@ -1,7 +1,7 @@
 .container {
+  position: relative;
   overflow: auto;
   border: 1px solid #eaeaea;
-  padding: 10px 15px;
   box-shadow: rgba(0, 0, 0, 0.12) 0px 20px 50px 0px;
   background: rgb(255, 255, 255);
   border-width: 1px;
@@ -9,5 +9,34 @@
   border-color: rgb(238, 238, 238);
   border-radius: 5px;
   height: calc(100vh - 220px);
+}
+
+.previewContent {
+  padding: 10px 15px;
+  padding-top: 36px;
+  height: 100%;
   overflow: auto;
+}
+
+.header {
+  width: 100%;
+  height: 36px;
+  background-color: white;
+  margin: 0px auto -2px;
+  z-index: 1;
+  flex-shrink: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+
+  .uploadButton {
+    margin-left: auto;
+    margin-right: 12px;
+  }
+
+  :global(.anticon) {
+    cursor: pointer;
+  }
 }
