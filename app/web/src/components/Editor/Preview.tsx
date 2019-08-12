@@ -1,7 +1,8 @@
 import React, { ReactElement, ReactComponentElement, MouseEventHandler } from 'react';
 import { connect } from 'dva';
 import { ConnectState } from '@/models/connect.d';
-import { Tooltip, Icon, Upload } from 'antd';
+import { Tooltip, Icon, Upload, Spin } from 'antd';
+import { UploadFile, UploadChangeParam } from 'antd/lib/upload/interface'
 import styles from './Preview.less';
 
 // import stylesheets for preview components.
@@ -14,11 +15,16 @@ const stopPropagationListener: MouseEventHandler = (evt) => evt.stopPropagation;
 
 type PreviewProps = {
   previewCode: string,
+  editLayoutFile: UploadFile | null,
   dispatch: Function,
 }
 
-class Preview extends React.Component<PreviewProps> {
-  state = {
+type PreviewState = {
+  hasError: boolean;
+}
+
+class Preview extends React.Component<PreviewProps, PreviewState> {
+  state: PreviewState = {
     hasError: false,
   }
 
@@ -79,8 +85,13 @@ class Preview extends React.Component<PreviewProps> {
       action: '/form/analyze',
       accept: 'image/png',
       multiple: false,
-      onChange(info: any) {
-        console.log(info);
+      onChange: (info: UploadChangeParam<UploadFile>) => {
+        this.props.dispatch({
+          type: 'preview/updateEditLayoutFile',
+          payload: {
+            file: info.file,
+          },
+        })
       },
       showUploadList: false,
     }
@@ -97,11 +108,20 @@ class Preview extends React.Component<PreviewProps> {
   }
 
   render() {
+    const { editLayoutFile } = this.props;
+
+    let spinning = false
+    if (editLayoutFile !== null) {
+      spinning = editLayoutFile.status === 'uploading';
+    }
+
     return (
-      <div className={styles.container}>
-        {this.renderHeader()}
-        {this.renderPreviewContent()}
-      </div>
+      <Spin tip="Uploading..." spinning={spinning}>
+        <div className={styles.container}>
+          {this.renderHeader()}
+          {this.renderPreviewContent()}
+        </div>
+      </Spin>
     ) 
   }
 }
@@ -109,5 +129,6 @@ class Preview extends React.Component<PreviewProps> {
 export default connect((state: ConnectState) => {
   return {
     previewCode: state.code.previewCode,
+    editLayoutFile: state.preview.editLayoutFile,
   }
 })(Preview);
