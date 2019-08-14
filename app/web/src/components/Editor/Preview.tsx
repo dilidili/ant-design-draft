@@ -114,7 +114,8 @@ class Preview extends React.Component<PreviewProps, PreviewState> {
     return (
       <Modal
         title="Edit form items"
-        visible={!!editLayoutFile}
+        // visible={!!editLayoutFile}
+        visible
         footer={null}
       >
         <LayoutEditor />

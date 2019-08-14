@@ -2,9 +2,12 @@ import { Reducer, Effect } from './connect.d';
 import { UploadFile } from 'antd/lib/upload/interface'
 import { Action } from 'redux';
 
-type FormLayout = {
+export type FormLayout = {
   span: number;
   offset: number;
+  offsetAbs: number;
+  row: number;
+  key: number;
 };
 
 export interface PreviewModelState {
@@ -79,12 +82,14 @@ const Model: ModelType = {
 
           // map into 24 sections
           const sectionWidth = width / 24;
-          layout.forEach((row) => {
+          layout.forEach((row, rowIndex) => {
             let lastX = 0;
 
             row.forEach((col) => {
               col.span = Math.round(col.width / sectionWidth);
               col.offset = Math.round((col.x - lastX) / sectionWidth);
+              col.offsetAbs = Math.round(col.x / sectionWidth);
+              col.row = rowIndex;
               lastX = col.x + col.width;
             });
           });
