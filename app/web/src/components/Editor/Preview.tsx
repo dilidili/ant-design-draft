@@ -1,8 +1,9 @@
 import React, { ReactElement, ReactComponentElement, MouseEventHandler } from 'react';
 import { connect } from 'dva';
 import { ConnectState } from '@/models/connect.d';
-import { Tooltip, Icon, Upload, Spin } from 'antd';
-import { UploadFile, UploadChangeParam } from 'antd/lib/upload/interface'
+import { Tooltip, Icon, Upload, Spin, Modal } from 'antd';
+import { UploadFile, UploadChangeParam } from 'antd/lib/upload/interface';
+import LayoutEditor from './LayoutEditor';
 import styles from './Preview.less';
 
 // import stylesheets for preview components.
@@ -87,7 +88,7 @@ class Preview extends React.Component<PreviewProps, PreviewState> {
       multiple: false,
       onChange: (info: UploadChangeParam<UploadFile>) => {
         this.props.dispatch({
-          type: 'preview/updateEditLayoutFile',
+          type: 'preview/uploadImageChange',
           payload: {
             file: info.file,
           },
@@ -107,6 +108,20 @@ class Preview extends React.Component<PreviewProps, PreviewState> {
     )
   }
 
+  renderLayoutModal() {
+    const { editLayoutFile } = this.props;
+
+    return (
+      <Modal
+        title="Edit form items"
+        visible={!!editLayoutFile}
+        footer={null}
+      >
+        <LayoutEditor />
+      </Modal>
+    )
+  }
+
   render() {
     const { editLayoutFile } = this.props;
 
@@ -120,6 +135,7 @@ class Preview extends React.Component<PreviewProps, PreviewState> {
         <div className={styles.container}>
           {this.renderHeader()}
           {this.renderPreviewContent()}
+          {this.renderLayoutModal()}
         </div>
       </Spin>
     ) 

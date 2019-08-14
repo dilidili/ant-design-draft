@@ -34,7 +34,7 @@ class FormController extends Controller {
         child_process.exec(`rm ${path.join(config.paths.tempDir, randomKey)}*`);
         ctx.body = {
           code: 0,
-          data: JSON.parse(rects.toString()) || [],
+          data: JSON.parse(rects.toString()) || null,
         };
       } else {
         ctx.body = {

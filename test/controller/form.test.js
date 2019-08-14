@@ -16,7 +16,7 @@ describe('test/controller/form.test.js', () => {
       .expect(200)
       .then(response => {
         assert(response.body.code === 0);
-        assert(Array.isArray(response.body.data));
+        assert(Array.isArray(response.body.data.contours));
       })
   });
 
