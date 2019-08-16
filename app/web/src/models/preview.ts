@@ -27,6 +27,14 @@ interface UpdateEditLayoutFileAction extends Action {
   };
 }
 
+interface ChangeFormItemLayoutAction extends Action {
+  payload: {
+    key: number;
+    row: number,
+    offsetAbs: number,
+  };
+}
+
 const normalize = (length: number): number => Math.round(length / 4) * 4;
 
 export interface ModelType {
@@ -38,6 +46,7 @@ export interface ModelType {
   reducers: {
     updateFormLayout: Reducer<PreviewModelState, UpdateFormLayoutAction>;
     updateEditLayoutFile: Reducer<PreviewModelState, UpdateEditLayoutFileAction>;
+    changeFormItemLayout: Reducer<PreviewModelState, ChangeFormItemLayoutAction>;
   };
 }
 
@@ -45,7 +54,8 @@ const Model: ModelType = {
   namespace: 'preview',
 
   state: {
-    formLayout: [],
+    formLayout: JSON.parse(`[{"height":84,"width":620,"y":12,"x":16,"center":[326,54],"span":23,"offset":1,"offsetAbs":1,"key":0,"row":0},{"height":84,"width":620,"y":140,"x":16,"center":[326,182],"span":23,"offset":1,"offsetAbs":1,"key":1,"row":1},{"height":52,"width":254,"y":284,"x":16,"center":[143,310],"span":9,"offset":1,"offsetAbs":1,"key":2,"row":2},{"height":46,"width":232,"y":290,"x":402,"center":[518,313],"span":8,"offset":5,"offsetAbs":15,"key":3,"row":2},{"height":88,"width":620,"y":348,"x":16,"center":[326,392],"span":23,"offset":1,"offsetAbs":1,"key":4,"row":3},{"height":47,"width":224,"y":449,"x":17,"center":[129,472.5],"span":8,"offset":1,"offsetAbs":1,"key":5,"row":4}]`),
+    // formLayout: [],
     editLayoutFile: null,
   },
 
@@ -135,6 +145,20 @@ const Model: ModelType = {
         editLayoutFile: payload.file,
       };
     },
+    changeFormItemLayout(state: PreviewModelState, { payload }: ChangeFormItemLayoutAction) {
+      const { key, row, offsetAbs } = payload;
+      let newLayout = state.formLayout;
+      const item = newLayout.find(v => v.key === key);
+      if (item) {
+        item.row = row;
+        item.offsetAbs = offsetAbs;
+      }
+
+      return {
+        ...state,
+        formLayout: newLayout,
+      }
+    }
   },
 };
 

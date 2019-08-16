@@ -4,9 +4,11 @@ import { ConnectState } from '@/models/connect.d';
 import { FormLayout } from '@/models/preview';
 import { Motion, spring } from 'react-motion';
 import styles from './LayoutEditor.less';
+import { Dispatch } from 'redux';
 
 interface LayoutEditorProps {
   formLayout: FormLayout[],
+  dispatch: Dispatch,
 };
 
 const RowHeight = 30;
@@ -18,6 +20,10 @@ const allColors = [
   '#49BEAA', '#49DCB1', '#EEB868', '#EF767A',
 ];
 
+function clamp(n: number, min: number, max: number) {
+  return Math.max(Math.min(n, max), min);
+}
+
 const springSetting1 = { stiffness: 180, damping: 10 };
 const springSetting2 = { stiffness: 120, damping: 17 };
 
@@ -27,10 +33,6 @@ class LayoutEditor extends React.Component<LayoutEditorProps, {
   mouseCircleDelta: number[],
   mouseXY: number[],
 }> {
-  static defaultProps = {
-    formLayout: JSON.parse(`[{"height":84,"width":620,"y":12,"x":16,"center":[326,54],"span":23,"offset":1,"offsetAbs":1,"key":0,"row":0},{"height":84,"width":620,"y":140,"x":16,"center":[326,182],"span":23,"offset":1,"offsetAbs":1,"key":1,"row":1},{"height":52,"width":254,"y":284,"x":16,"center":[143,310],"span":9,"offset":1,"offsetAbs":1,"key":2,"row":2},{"height":46,"width":232,"y":290,"x":402,"center":[518,313],"span":8,"offset":5,"offsetAbs":15,"key":3,"row":2},{"height":88,"width":620,"y":348,"x":16,"center":[326,392],"span":23,"offset":1,"offsetAbs":1,"key":4,"row":3},{"height":47,"width":224,"y":449,"x":17,"center":[129,472.5],"span":8,"offset":1,"offsetAbs":1,"key":5,"row":4}]`),
-  }
-
   state = {
     lastPress: -1,
     isPressed: false,
@@ -54,9 +56,23 @@ class LayoutEditor extends React.Component<LayoutEditorProps, {
 
   handleMouseMove = ({ pageX, pageY }: MouseEvent | Touch) => {
     const { lastPress, isPressed, mouseCircleDelta: [dx, dy] } = this.state;
+    const { dispatch } = this.props;
 
     if (isPressed) {
       const mouseXY = [pageX - dx, pageY - dy];
+      const row = Math.max(Math.floor(mouseXY[1] / (RowHeight + RowMargin)), 0);
+      const col = clamp(Math.floor(mouseXY[0] * 24 / ContentWidth), 0, 24);
+
+      // resort form items.
+      dispatch({
+        type: 'preview/changeFormItemLayout',
+        payload: {
+          key: lastPress,
+          row: row,
+          offsetAbs: col,
+        },
+      })
+
       this.setState({ mouseXY });
     }
   }
@@ -92,7 +108,7 @@ class LayoutEditor extends React.Component<LayoutEditorProps, {
         <div className={styles.content}>
           {formLayout.map(layout => {
             let style, x: number, y: number;
-            const isPressedLayout = layout.key === lastPress && isPressed;
+            const isPressedLayout = layout.row === lastPress && isPressed;
 
             if (isPressedLayout) {
               [x, y] = mouseXY;
@@ -112,8 +128,8 @@ class LayoutEditor extends React.Component<LayoutEditorProps, {
                 {({ translateX, translateY, scale }) => {
                   return (
                     <div
-                      onMouseDown={(evt) => this.handleMouseDown(layout.key, [x, y], evt)}
-                      onTouchStart={(evt) => this.handleTouchStart(layout.key, [x, y], evt)}
+                      onMouseDown={(evt) => this.handleMouseDown(layout.row, [x, y], evt)}
+                      onTouchStart={(evt) => this.handleTouchStart(layout.row, [x, y], evt)}
                       style={{
                         width: `${100 / 24 * layout.span}%`,
                         height: RowHeight,
@@ -135,6 +151,6 @@ class LayoutEditor extends React.Component<LayoutEditorProps, {
 
 export default connect((state: ConnectState) => {
   return {
-    // formLayout: state.preview.formLayout,
+    formLayout: state.preview.formLayout,
   }
 })(LayoutEditor);
