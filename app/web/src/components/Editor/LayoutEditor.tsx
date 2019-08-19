@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'dva';
 import { ConnectState } from '@/models/connect.d';
 import { FormLayout } from '@/models/preview';
-import { Motion, spring } from 'react-motion';
+import { Motion, spring, OpaqueConfig } from 'react-motion';
 import styles from './LayoutEditor.less';
 import { Dispatch } from 'redux';
 
@@ -24,25 +24,35 @@ function clamp(n: number, min: number, max: number) {
   return Math.max(Math.min(n, max), min);
 }
 
+type FormItemStyle = {
+  translateX: OpaqueConfig,
+  translateY: OpaqueConfig,
+  scale: OpaqueConfig,
+  x: number,
+  y: number,
+}
+
+type PositonMap = {
+  [rowKey: string]: [number, number],
+}
+
 const springSetting1 = { stiffness: 180, damping: 10 };
 const springSetting2 = { stiffness: 120, damping: 17 };
 
 class LayoutEditor extends React.Component<LayoutEditorProps, {
-  lastPress: number,
+  lastPressRow: number,
   isPressed: boolean,
-  mouseCircleDelta: number[],
-  mouseXY: number[],
+  mouseCircleDelta: PositonMap,
+  mouseXY: PositonMap,
 }> {
   state = {
-    lastPress: -1,
+    lastPressRow: -1,
     isPressed: false,
-    mouseCircleDelta: [0, 0],
-    mouseXY: [0, 0],
+    mouseCircleDelta: {} as PositonMap,
+    mouseXY: {} as PositonMap,
   }
 
   componentDidMount() {
-    window.addEventListener('touchmove', this.handleTouchMove);
-    window.addEventListener('touchend', this.handleMouseUp);
     window.addEventListener('mousemove', this.handleMouseMove);
     window.addEventListener('mouseup', this.handleMouseUp);
   };
@@ -50,86 +60,100 @@ class LayoutEditor extends React.Component<LayoutEditorProps, {
   componentWillUnmount() {
     window.removeEventListener('mousemove', this.handleMouseMove);
     window.removeEventListener('mouseup', this.handleMouseUp);
-    window.removeEventListener('touchmove', this.handleTouchMove);
-    window.removeEventListener('touchend', this.handleMouseUp);
   }
 
   handleMouseMove = ({ pageX, pageY }: MouseEvent | Touch) => {
-    const { lastPress, isPressed, mouseCircleDelta: [dx, dy] } = this.state;
+    const { lastPressRow, isPressed, mouseCircleDelta } = this.state;
     const { dispatch } = this.props;
 
     if (isPressed) {
-      const mouseXY = [pageX - dx, pageY - dy];
-      const row = Math.max(Math.floor(mouseXY[1] / (RowHeight + RowMargin)), 0);
-      const col = clamp(Math.floor(mouseXY[0] * 24 / ContentWidth), 0, 24);
+      let lastMouseXY: [number, number] = [0, 0];
+      const mouseXY = Object.keys(mouseCircleDelta).reduce((r, key) => {
+        const [dx, dy] = mouseCircleDelta[key];
+        r[key] = [pageX - dx, pageY - dy];
 
-      // resort form items.
-      dispatch({
-        type: 'preview/changeFormItemLayout',
-        payload: {
-          key: lastPress,
-          row: row,
-          offsetAbs: col,
-        },
-      })
+        lastMouseXY = r[key];
+
+        return r;
+      }, {} as PositonMap);
+
+      const row = Math.max(Math.floor(lastMouseXY[1] / (RowHeight + RowMargin)), 0);
+      if (row !== lastPressRow) {
+        dispatch({
+          type: 'preview/switchFormItemRow',
+          payload: {
+            lastRow: lastPressRow,
+            row: row,
+          },
+        })
+
+        this.setState({ lastPressRow: row });
+      }
 
       this.setState({ mouseXY });
     }
   }
 
   handleMouseUp = () => {
-    this.setState({isPressed: false, mouseCircleDelta: [0, 0]});
+    this.setState({ isPressed: false, mouseCircleDelta: {}, mouseXY: {}, lastPressRow: -1 });
   }
 
-  handleMouseDown = (key: number, [pressX, pressY]: [number, number], { pageX, pageY }: React.MouseEvent | React.Touch) => {
+  handleMouseDown = (row: number, layouts: FormLayout[], motionStyles: FormItemStyle[], { pageX, pageY }: React.MouseEvent | React.Touch) => {
+    const selectedLayouts = layouts.filter(v => v.row === row);
+
     this.setState({
-      lastPress: key,
+      lastPressRow: row,
       isPressed: true,
-      mouseCircleDelta: [pageX - pressX, pageY - pressY],
-      mouseXY: [pressX, pressY],
+      mouseCircleDelta: selectedLayouts.reduce((r, v) => {
+        const index = layouts.findIndex(w => v === w);
+        r[v.key] = [pageX - motionStyles[index].x, pageY - motionStyles[index].y];
+        return r;
+      }, {} as PositonMap),
+      mouseXY: selectedLayouts.reduce((r, v) => {
+        const index = layouts.findIndex(w => v === w);
+        r[v.key] = [motionStyles[index].x, motionStyles[index].y];
+        return r;
+      }, {} as PositonMap),
     });
-  }
-
-  handleTouchStart = (key: number, pressLocation: [number, number], evt: React.TouchEvent) => {
-    this.handleMouseDown(key, pressLocation, evt.touches[0]);
-  }
-
-  handleTouchMove = (evt: TouchEvent) => {
-    evt.preventDefault();
-    this.handleMouseMove(evt.touches[0]);
   }
 
   render() {
     const { formLayout } = this.props;
-    const { lastPress, isPressed, mouseXY } = this.state;
+    const { isPressed, mouseXY } = this.state;
+
+    const motionStyles = formLayout.map(layout => {
+      let style: FormItemStyle, x: number, y: number, scale = 1;
+      const isPressedLayout = !!mouseXY[layout.key] && isPressed;
+
+      if (isPressedLayout) {
+        [x, y] = mouseXY[layout.key];
+        scale = 1.05;
+      } else {
+        x = layout.offsetAbs / 24 * ContentWidth;
+        y = layout.row * (RowHeight + RowMargin);
+      }
+
+      style = {
+        translateX: spring(x, springSetting2),
+        translateY: spring(y, springSetting2),
+        scale: spring(scale, springSetting1),
+        x: x,
+        y: y,
+      };
+
+      return style;
+    })
 
     return (
       <div className={styles.container}>
         <div className={styles.content}>
-          {formLayout.map(layout => {
-            let style, x: number, y: number;
-            const isPressedLayout = layout.row === lastPress && isPressed;
-
-            if (isPressedLayout) {
-              [x, y] = mouseXY;
-            } else {
-              x = layout.offsetAbs / 24 * ContentWidth;
-              y = layout.row * (RowHeight + RowMargin);
-            }
-
-            style = {
-              translateX: spring(x, springSetting2),
-              translateY: spring(y, springSetting2),
-              scale: spring(1, springSetting1),
-            };
-
+          {formLayout.map((layout, index) => {
             return (
-              <Motion key={layout.key} style={style}>
+              <Motion key={layout.key} style={motionStyles[index]}>
                 {({ translateX, translateY, scale }) => {
                   return (
                     <div
-                      onMouseDown={(evt) => this.handleMouseDown(layout.row, [x, y], evt)}
-                      onTouchStart={(evt) => this.handleTouchStart(layout.row, [x, y], evt)}
+                      onMouseDown={(evt) => this.handleMouseDown(layout.row, formLayout, motionStyles, evt)}
                       style={{
                         width: `${100 / 24 * layout.span}%`,
                         height: RowHeight,

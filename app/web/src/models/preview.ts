@@ -27,11 +27,10 @@ interface UpdateEditLayoutFileAction extends Action {
   };
 }
 
-interface ChangeFormItemLayoutAction extends Action {
+interface SwitchFormItemRowAction extends Action {
   payload: {
-    key: number;
+    lastRow: number;
     row: number,
-    offsetAbs: number,
   };
 }
 
@@ -46,7 +45,7 @@ export interface ModelType {
   reducers: {
     updateFormLayout: Reducer<PreviewModelState, UpdateFormLayoutAction>;
     updateEditLayoutFile: Reducer<PreviewModelState, UpdateEditLayoutFileAction>;
-    changeFormItemLayout: Reducer<PreviewModelState, ChangeFormItemLayoutAction>;
+    switchFormItemRow: Reducer<PreviewModelState, SwitchFormItemRowAction>;
   };
 }
 
@@ -145,14 +144,17 @@ const Model: ModelType = {
         editLayoutFile: payload.file,
       };
     },
-    changeFormItemLayout(state: PreviewModelState, { payload }: ChangeFormItemLayoutAction) {
-      const { key, row, offsetAbs } = payload;
-      let newLayout = state.formLayout;
-      const item = newLayout.find(v => v.key === key);
-      if (item) {
-        item.row = row;
-        item.offsetAbs = offsetAbs;
-      }
+    switchFormItemRow(state: PreviewModelState, { payload }: SwitchFormItemRowAction) {
+      const { lastRow, row } = payload;
+      let newLayout = state.formLayout.map(v => {
+        if (v.row === lastRow) {
+          v.row = row;
+        } else if (v.row === row) {
+          v.row = lastRow;
+        }
+
+        return v;
+      });
 
       return {
         ...state,
