@@ -93,7 +93,7 @@ class LayoutEditor extends React.Component<LayoutEditorProps, {
         return r;
       }, {} as PositonMap);
 
-      const row = Math.max(Math.floor(lastMouseXY[1] / (RowHeight + RowMargin)), 0);
+      const row = Math.max(Math.floor(lastMouseXY[1] / (RowHeight + RowMargin) + 1 / 2), 0);
       if (row !== lastPressRow) {
         dispatch({
           type: 'preview/switchFormItemRow',
@@ -249,6 +249,7 @@ class LayoutEditor extends React.Component<LayoutEditorProps, {
                         backgroundColor: allColors[layout.key % allColors.length],
                         WebkitTransform: `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`,
                         transform: `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`,
+                        zIndex: scale > 1 ? 1 : 0,
                       }}
                     >
                       {layout.offsetAbs > 0 ? <div
