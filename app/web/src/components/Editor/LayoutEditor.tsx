@@ -28,6 +28,7 @@ type FormItemStyle = {
   translateX: OpaqueConfig,
   translateY: OpaqueConfig,
   scale: OpaqueConfig,
+  width: OpaqueConfig,
   x: number,
   y: number,
 }
@@ -41,12 +42,24 @@ const springSetting2 = { stiffness: 120, damping: 17 };
 
 class LayoutEditor extends React.Component<LayoutEditorProps, {
   lastPressRow: number,
+  lastPressLeftResize: number,
+  lastPressRightResize: number,
+  mouseLeftResizeDelta: number,
+  mouseLeftResizeX: number,
+  mouseRightResizeDelta: number,
+  mouseRightResizeX: number,
   isPressed: boolean,
   mouseCircleDelta: PositonMap,
   mouseXY: PositonMap,
 }> {
   state = {
     lastPressRow: -1,
+    lastPressLeftResize: -1,
+    lastPressRightResize: -1,
+    mouseLeftResizeX: 0,
+    mouseLeftResizeDelta: 0,
+    mouseRightResizeX: 0,
+    mouseRightResizeDelta: 0,
     isPressed: false,
     mouseCircleDelta: {} as PositonMap,
     mouseXY: {} as PositonMap,
@@ -54,11 +67,15 @@ class LayoutEditor extends React.Component<LayoutEditorProps, {
 
   componentDidMount() {
     window.addEventListener('mousemove', this.handleMouseMove);
+    window.addEventListener('mousemove', this.handleLeftResizeMouseMove);
+    window.addEventListener('mousemove', this.handleRightResizeMouseMove);
     window.addEventListener('mouseup', this.handleMouseUp);
   };
 
   componentWillUnmount() {
     window.removeEventListener('mousemove', this.handleMouseMove);
+    window.removeEventListener('mousemove', this.handleLeftResizeMouseMove);
+    window.removeEventListener('mousemove', this.handleRightResizeMouseMove);
     window.removeEventListener('mouseup', this.handleMouseUp);
   }
 
@@ -66,12 +83,11 @@ class LayoutEditor extends React.Component<LayoutEditorProps, {
     const { lastPressRow, isPressed, mouseCircleDelta } = this.state;
     const { dispatch } = this.props;
 
-    if (isPressed) {
+    if (isPressed && lastPressRow > -1) {
       let lastMouseXY: [number, number] = [0, 0];
       const mouseXY = Object.keys(mouseCircleDelta).reduce((r, key) => {
         const [dx, dy] = mouseCircleDelta[key];
         r[key] = [pageX - dx, pageY - dy];
-
         lastMouseXY = r[key];
 
         return r;
@@ -94,8 +110,71 @@ class LayoutEditor extends React.Component<LayoutEditorProps, {
     }
   }
 
+  handleLeftResizeMouseMove = ({ pageX }: MouseEvent) => {
+    const { isPressed, mouseLeftResizeDelta } = this.state;
+
+    if (isPressed) {
+      const mouseLeftResizeX = pageX - mouseLeftResizeDelta;
+      this.setState({ mouseLeftResizeX });
+    }
+  }
+
+  handleRightResizeMouseMove = ({ pageX }: MouseEvent) => {
+    const { isPressed, mouseRightResizeDelta } = this.state;
+
+    if (isPressed) {
+      const mouseRightResizeX = pageX - mouseRightResizeDelta;
+      this.setState({ mouseRightResizeX });
+    }
+  }
+
   handleMouseUp = () => {
-    this.setState({ isPressed: false, mouseCircleDelta: {}, mouseXY: {}, lastPressRow: -1 });
+    const { isPressed, lastPressLeftResize, mouseLeftResizeX, lastPressRightResize, mouseRightResizeX } = this.state;
+    const { dispatch } = this.props;
+
+    if (isPressed && lastPressLeftResize > -1) {
+      const col = clamp(Math.floor(mouseLeftResizeX * 24 / ContentWidth), 0, 24);
+
+      dispatch({
+        type: 'preview/changeFormItemOffset',
+        payload: {
+          key: lastPressLeftResize,
+          leftAbsOffset: col,
+        },
+      });
+    }
+
+    if (isPressed && lastPressRightResize > -1) {
+      const span = Math.floor(mouseRightResizeX * 24 / ContentWidth);
+
+      dispatch({
+        type: 'preview/changeFormItemOffset',
+        payload: {
+          key: lastPressRightResize,
+          rightAbsOffset: span,
+        },
+      });
+    }
+
+    this.setState({ isPressed: false, mouseCircleDelta: {}, mouseXY: {}, lastPressRow: -1, lastPressLeftResize: -1, lastPressRightResize: -1, mouseLeftResizeX: 0, mouseRightResizeX: 0, mouseLeftResizeDelta: 0, mouseRightResizeDelta: 0 });
+  }
+
+  handleMouseDownLeftResize = (key: number, pressX: number, { pageX }: React.MouseEvent) => {
+    this.setState({
+      isPressed: true,
+      lastPressLeftResize: key,
+      mouseLeftResizeDelta: pageX - pressX,
+      mouseLeftResizeX: pressX,
+    });
+  }
+
+  handleMouseDownRightResize = (key: number, width: number, { pageX }: React.MouseEvent) => {
+    this.setState({
+      isPressed: true,
+      lastPressRightResize: key,
+      mouseRightResizeDelta: pageX - width,
+      mouseRightResizeX: width,
+    });
   }
 
   handleMouseDown = (row: number, layouts: FormLayout[], motionStyles: FormItemStyle[], { pageX, pageY }: React.MouseEvent | React.Touch) => {
@@ -119,15 +198,24 @@ class LayoutEditor extends React.Component<LayoutEditorProps, {
 
   render() {
     const { formLayout } = this.props;
-    const { isPressed, mouseXY } = this.state;
+    const { isPressed, mouseXY, mouseLeftResizeX, lastPressLeftResize, mouseRightResizeX, lastPressRightResize } = this.state;
 
     const motionStyles = formLayout.map(layout => {
       let style: FormItemStyle, x: number, y: number, scale = 1;
-      const isPressedLayout = !!mouseXY[layout.key] && isPressed;
+      let width = 100 / 24 * layout.span;
 
-      if (isPressedLayout) {
+      if (!!mouseXY[layout.key] && isPressed) {
         [x, y] = mouseXY[layout.key];
         scale = 1.05;
+      } else if (lastPressLeftResize === layout.key && isPressed) {
+        const originalX = layout.offsetAbs / 24 * ContentWidth;
+        x = mouseLeftResizeX;
+        y = layout.row * (RowHeight + RowMargin);
+        width = (originalX - x) * 100 / ContentWidth + width;
+      } else if (lastPressRightResize === layout.key && isPressed) {
+        x = layout.offsetAbs / 24 * ContentWidth;
+        y = layout.row * (RowHeight + RowMargin);
+        width = mouseRightResizeX * 100 / ContentWidth ;
       } else {
         x = layout.offsetAbs / 24 * ContentWidth;
         y = layout.row * (RowHeight + RowMargin);
@@ -137,6 +225,7 @@ class LayoutEditor extends React.Component<LayoutEditorProps, {
         translateX: spring(x, springSetting2),
         translateY: spring(y, springSetting2),
         scale: spring(scale, springSetting1),
+        width: spring(width, springSetting2),
         x: x,
         y: y,
       };
@@ -150,18 +239,34 @@ class LayoutEditor extends React.Component<LayoutEditorProps, {
           {formLayout.map((layout, index) => {
             return (
               <Motion key={layout.key} style={motionStyles[index]}>
-                {({ translateX, translateY, scale }) => {
+                {({ translateX, translateY, scale, x, width }) => {
                   return (
                     <div
                       onMouseDown={(evt) => this.handleMouseDown(layout.row, formLayout, motionStyles, evt)}
                       style={{
-                        width: `${100 / 24 * layout.span}%`,
                         height: RowHeight,
+                        width: `${width}%`,
                         backgroundColor: allColors[layout.key % allColors.length],
                         WebkitTransform: `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`,
                         transform: `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`,
                       }}
-                    />
+                    >
+                      {layout.offsetAbs > 0 ? <div
+                        className={styles.leftResize}
+                        onMouseDown={(evt) => {
+                          evt.stopPropagation();
+                          this.handleMouseDownLeftResize(layout.key, x, evt);
+                        }}
+                      /> : null}
+
+                      {layout.span > 0 ? <div
+                        className={styles.rightResize}
+                        onMouseDown={(evt) => {
+                          evt.stopPropagation();
+                          this.handleMouseDownRightResize(layout.key, width / 100 * ContentWidth, evt);
+                        }}
+                      /> : null}
+                    </div>
                   )
                 }}
               </Motion>

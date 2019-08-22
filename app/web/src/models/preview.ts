@@ -30,7 +30,15 @@ interface UpdateEditLayoutFileAction extends Action {
 interface SwitchFormItemRowAction extends Action {
   payload: {
     lastRow: number;
-    row: number,
+    row: number;
+  };
+}
+
+interface ChangeFormItemOffsetAction extends Action {
+  payload: {
+    key: number;
+    leftAbsOffset?: number;
+    rightAbsOffset?: number;
   };
 }
 
@@ -46,6 +54,7 @@ export interface ModelType {
     updateFormLayout: Reducer<PreviewModelState, UpdateFormLayoutAction>;
     updateEditLayoutFile: Reducer<PreviewModelState, UpdateEditLayoutFileAction>;
     switchFormItemRow: Reducer<PreviewModelState, SwitchFormItemRowAction>;
+    changeFormItemOffset: Reducer<PreviewModelState, ChangeFormItemOffsetAction>;
   };
 }
 
@@ -155,6 +164,37 @@ const Model: ModelType = {
 
         return v;
       });
+
+      return {
+        ...state,
+        formLayout: newLayout,
+      }
+    },
+    changeFormItemOffset(state: PreviewModelState, { payload }: ChangeFormItemOffsetAction) {
+      const { key, leftAbsOffset, rightAbsOffset } = payload;
+      let newLayout = state.formLayout;
+
+      if (typeof leftAbsOffset === 'number') {
+        newLayout = newLayout.map(v => {
+          if (v.key === key) {
+            v.span = v.span + (v.offsetAbs - leftAbsOffset);
+            v.offset = v.offset + (leftAbsOffset - v.offsetAbs);
+            v.offsetAbs = leftAbsOffset;
+          }
+
+          return v;
+        });
+      }
+
+      if (typeof rightAbsOffset === 'number') {
+        newLayout = newLayout.map(v => {
+          if (v.key === key) {
+            v.span = rightAbsOffset;
+          }
+
+          return v;
+        });
+      }
 
       return {
         ...state,
