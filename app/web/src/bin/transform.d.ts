@@ -43,7 +43,7 @@ export type FormItemRule = 'required' | 'email';
 
 export type FormItem = {
   type: 'Row' | 'Divider' | 'Button' | 'Cascader' | 'Radio.Group' | 'Input' | 'Select' | 'DatePicker.RangePicker' | 'TimePicker';
-  name: string; // values.name
+  name?: string; // values.name
   options?: Array<{
     value: any;
     text: string;
@@ -58,11 +58,12 @@ export type FormItem = {
   rules? : Array<FormItemRule>;
   validators? : Array<string>;
   extra?: React.ReactNode;
-  layout?: any;
+  layout?: number[];
+  offset?: number[];
   valuePropName?: string | Array<any>;
   initialValue?: string | Array<any>;
-  items: [any];
-  props: any | {
+  items?: any[];
+  props?: any | {
     [key: string]: any;
   };
 }

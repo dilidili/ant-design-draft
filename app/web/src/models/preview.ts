@@ -55,6 +55,7 @@ export interface ModelType {
     updateEditLayoutFile: Reducer<PreviewModelState, UpdateEditLayoutFileAction>;
     switchFormItemRow: Reducer<PreviewModelState, SwitchFormItemRowAction>;
     changeFormItemOffset: Reducer<PreviewModelState, ChangeFormItemOffsetAction>;
+    cancelLayout: Reducer<PreviewModelState>;
   };
 }
 
@@ -62,8 +63,7 @@ const Model: ModelType = {
   namespace: 'preview',
 
   state: {
-    formLayout: JSON.parse(`[{"height":84,"width":620,"y":12,"x":16,"center":[326,54],"span":23,"offset":1,"offsetAbs":1,"key":0,"row":0},{"height":84,"width":620,"y":140,"x":16,"center":[326,182],"span":23,"offset":1,"offsetAbs":1,"key":1,"row":1},{"height":52,"width":254,"y":284,"x":16,"center":[143,310],"span":9,"offset":1,"offsetAbs":1,"key":2,"row":2},{"height":46,"width":232,"y":290,"x":402,"center":[518,313],"span":8,"offset":5,"offsetAbs":15,"key":3,"row":2},{"height":88,"width":620,"y":348,"x":16,"center":[326,392],"span":23,"offset":1,"offsetAbs":1,"key":4,"row":3},{"height":47,"width":224,"y":449,"x":17,"center":[129,472.5],"span":8,"offset":1,"offsetAbs":1,"key":5,"row":4}]`),
-    // formLayout: [],
+    formLayout: [],
     editLayoutFile: null,
   },
 
@@ -152,6 +152,13 @@ const Model: ModelType = {
         ...state,
         editLayoutFile: payload.file,
       };
+    },
+    cancelLayout(state: PreviewModelState) {
+      return {
+        ...state,
+        editLayoutFile: null,
+        formLayout: [],
+      }
     },
     switchFormItemRow(state: PreviewModelState, { payload }: SwitchFormItemRowAction) {
       const { lastRow, row } = payload;

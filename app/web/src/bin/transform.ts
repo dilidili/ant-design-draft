@@ -36,7 +36,7 @@ const getFormItemElement = function (formItem: FormItem | Array<FormItem>, entri
   let formItemList: Array<FormItem>;
   if (!Array.isArray(formItem)) {
     if (formItem.type === 'Row') {
-      const { layout, items, props } = formItem;
+      const { layout, offset, items, props } = formItem;
       entries.antdImports.add('Row');
       entries.antdImports.add('Col');
 
@@ -49,12 +49,17 @@ const getFormItemElement = function (formItem: FormItem | Array<FormItem>, entri
         }
       }
   
-      const rowChildren = items.map((col, k) => {
+      const rowChildren = (items || []).map((col, k) => {
+        const childProps = {} as {
+          span?: number;
+          offset?: number;
+        };
+        if (layout) childProps.span = layout[k];
+        if (offset) childProps.offset = offset[k];
+
         return {
           type: 'Col',
-          props: {
-            span: layout[k],
-          },
+          props: childProps,
           children: [getFormItemElement(col, entries, formProps, config, itemsAst ? itemsAst[k] : undefined)],
         }
       })

@@ -53,6 +53,12 @@ class Preview extends React.Component<PreviewProps, PreviewState> {
     return { hasError: error };
   }
 
+  handleSaveFormConfig = () => {
+    this.props.dispatch({
+      type: 'code/layoutToConfig',
+    });
+  }
+
   renderPreviewContent() {
     const { previewCode } = this.props;
     const { hasError } = this.state;
@@ -114,9 +120,8 @@ class Preview extends React.Component<PreviewProps, PreviewState> {
     return (
       <Modal
         title="Edit form items"
-        // visible={!!editLayoutFile}
-        visible
-        footer={null}
+        visible={!!editLayoutFile}
+        onOk={this.handleSaveFormConfig}
       >
         <LayoutEditor />
       </Modal>
