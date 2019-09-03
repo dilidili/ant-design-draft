@@ -1,5 +1,6 @@
 import React from 'react';
 import { connect } from 'dva';
+import { Spin } from 'antd';
 import { ConnectState } from '@/models/connect.d';
 import { FormLayout } from '@/models/preview';
 import { Motion, spring, OpaqueConfig } from 'react-motion';
@@ -9,6 +10,7 @@ import { Dispatch } from 'redux';
 interface LayoutEditorProps {
   formLayout: FormLayout[],
   dispatch: Dispatch,
+  editLayoutLoading: boolean,
 };
 
 const RowHeight = 30;
@@ -197,7 +199,7 @@ class LayoutEditor extends React.Component<LayoutEditorProps, {
   }
 
   render() {
-    const { formLayout } = this.props;
+    const { formLayout, editLayoutLoading } = this.props;
     const { isPressed, mouseXY, mouseLeftResizeX, lastPressLeftResize, mouseRightResizeX, lastPressRightResize } = this.state;
 
     const motionStyles = formLayout.map(layout => {
@@ -234,47 +236,49 @@ class LayoutEditor extends React.Component<LayoutEditorProps, {
     })
 
     return (
-      <div className={styles.container}>
-        <div className={styles.content}>
-          {formLayout.map((layout, index) => {
-            return (
-              <Motion key={layout.key} style={motionStyles[index]}>
-                {({ translateX, translateY, scale, x, width }) => {
-                  return (
-                    <div
-                      onMouseDown={(evt) => this.handleMouseDown(layout.row, formLayout, motionStyles, evt)}
-                      style={{
-                        height: RowHeight,
-                        width: `${width}%`,
-                        backgroundColor: allColors[layout.key % allColors.length],
-                        WebkitTransform: `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`,
-                        transform: `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`,
-                        zIndex: scale > 1 ? 1 : 0,
-                      }}
-                    >
-                      {layout.offsetAbs > 0 ? <div
-                        className={styles.leftResize}
-                        onMouseDown={(evt) => {
-                          evt.stopPropagation();
-                          this.handleMouseDownLeftResize(layout.key, x, evt);
+      <Spin spinning={editLayoutLoading}>
+        <div className={styles.container}>
+          <div className={styles.content}>
+            {formLayout.map((layout, index) => {
+              return (
+                <Motion key={layout.key} style={motionStyles[index]}>
+                  {({ translateX, translateY, scale, x, width }) => {
+                    return (
+                      <div
+                        onMouseDown={(evt) => this.handleMouseDown(layout.row, formLayout, motionStyles, evt)}
+                        style={{
+                          height: RowHeight,
+                          width: `${width}%`,
+                          backgroundColor: allColors[layout.key % allColors.length],
+                          WebkitTransform: `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`,
+                          transform: `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`,
+                          zIndex: scale > 1 ? 1 : 0,
                         }}
-                      /> : null}
+                      >
+                        {layout.offsetAbs > 0 ? <div
+                          className={styles.leftResize}
+                          onMouseDown={(evt) => {
+                            evt.stopPropagation();
+                            this.handleMouseDownLeftResize(layout.key, x, evt);
+                          }}
+                        /> : null}
 
-                      {layout.span > 0 ? <div
-                        className={styles.rightResize}
-                        onMouseDown={(evt) => {
-                          evt.stopPropagation();
-                          this.handleMouseDownRightResize(layout.key, width / 100 * ContentWidth, evt);
-                        }}
-                      /> : null}
-                    </div>
-                  )
-                }}
-              </Motion>
-            )
-          })}
+                        {layout.span > 0 ? <div
+                          className={styles.rightResize}
+                          onMouseDown={(evt) => {
+                            evt.stopPropagation();
+                            this.handleMouseDownRightResize(layout.key, width / 100 * ContentWidth, evt);
+                          }}
+                        /> : null}
+                      </div>
+                    )
+                  }}
+                </Motion>
+              )
+            })}
+          </div>
         </div>
-      </div>
+      </Spin>
     );
   }
 }
@@ -282,5 +286,6 @@ class LayoutEditor extends React.Component<LayoutEditorProps, {
 export default connect((state: ConnectState) => {
   return {
     formLayout: state.preview.formLayout,
+    editLayoutLoading: state.preview.loading,
   }
 })(LayoutEditor);

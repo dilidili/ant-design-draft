@@ -17,6 +17,7 @@ const stopPropagationListener: MouseEventHandler = (evt) => evt.stopPropagation;
 type PreviewProps = {
   previewCode: string,
   editLayoutFile: UploadFile | null,
+  editLayoutLoading: boolean,
   dispatch: Function,
 }
 
@@ -56,6 +57,12 @@ class Preview extends React.Component<PreviewProps, PreviewState> {
   handleSaveFormConfig = () => {
     this.props.dispatch({
       type: 'code/layoutToConfig',
+    });
+  }
+
+  handleCancelEditLayout = () => {
+    this.props.dispatch({
+      type: 'preview/cancelEditLayout',
     });
   }
 
@@ -115,13 +122,17 @@ class Preview extends React.Component<PreviewProps, PreviewState> {
   }
 
   renderLayoutModal() {
-    const { editLayoutFile } = this.props;
+    const { editLayoutFile, editLayoutLoading } = this.props;
 
     return (
       <Modal
-        title="Edit form items"
+        title="Edit"
         visible={!!editLayoutFile}
         onOk={this.handleSaveFormConfig}
+        onCancel={this.handleCancelEditLayout}
+        okButtonProps={editLayoutLoading ? {
+          disabled: true,
+        } : {}}
       >
         <LayoutEditor />
       </Modal>
@@ -152,5 +163,6 @@ export default connect((state: ConnectState) => {
   return {
     previewCode: state.code.previewCode,
     editLayoutFile: state.preview.editLayoutFile,
+    editLayoutLoading: state.preview.loading,
   }
 })(Preview);

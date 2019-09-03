@@ -33,7 +33,7 @@ const mapLayoutToFormItem = (layout: FormLayout): FormItem => {
   return {
     type: 'Input',
     name: `item_${layout.key}`,
-    label: `item_${layout.key}`,
+    label: ``,
   }
 }
 
@@ -275,7 +275,7 @@ const Model: ModelType = {
       });
 
       yield put({
-        type: 'preview/cancelLayout',
+        type: 'preview/cancelEditLayout',
       });
     },
   },

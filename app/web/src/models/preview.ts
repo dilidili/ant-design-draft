@@ -11,6 +11,7 @@ export type FormLayout = {
 };
 
 export interface PreviewModelState {
+  loading: boolean,
   formLayout: FormLayout[];
   editLayoutFile: UploadFile | null;
 }
@@ -42,6 +43,12 @@ interface ChangeFormItemOffsetAction extends Action {
   };
 }
 
+interface UploadImageAction extends Action {
+  payload: {
+    file: UploadFile;
+  }
+}
+
 const normalize = (length: number): number => Math.round(length / 4) * 4;
 
 export interface ModelType {
@@ -51,11 +58,12 @@ export interface ModelType {
     uploadImageChange: Effect,
   },
   reducers: {
+    uploadImageChange: Reducer<PreviewModelState, UploadImageAction>;
     updateFormLayout: Reducer<PreviewModelState, UpdateFormLayoutAction>;
+    cancelEditLayout: Reducer<PreviewModelState>;
     updateEditLayoutFile: Reducer<PreviewModelState, UpdateEditLayoutFileAction>;
     switchFormItemRow: Reducer<PreviewModelState, SwitchFormItemRowAction>;
     changeFormItemOffset: Reducer<PreviewModelState, ChangeFormItemOffsetAction>;
-    cancelLayout: Reducer<PreviewModelState>;
   };
 }
 
@@ -65,6 +73,7 @@ const Model: ModelType = {
   state: {
     formLayout: [],
     editLayoutFile: null,
+    loading: false,
   },
 
   effects: {
@@ -108,6 +117,16 @@ const Model: ModelType = {
               col.offset = Math.round((col.x - lastX) / sectionWidth);
               col.offsetAbs = Math.round(col.x / sectionWidth);
               col.row = rowIndex;
+
+              // align to sides
+              if (col.offsetAbs === 1) {
+                col.offsetAbs = 0;
+                col.offset = 0;
+                col.span += 1;
+              } else if (col.offsetAbs + col.span === 23) {
+                col.span += 1;
+              }
+
               lastX = col.x + col.width;
             });
           });
@@ -141,6 +160,12 @@ const Model: ModelType = {
   },
 
   reducers: {
+    uploadImageChange(state: PreviewModelState, { payload }) {
+      return {
+        ...state,
+        loading: !!payload && !!payload.file,
+      }
+    },
     updateFormLayout(state: PreviewModelState, { payload }) {
       return {
         ...state,
@@ -150,10 +175,11 @@ const Model: ModelType = {
     updateEditLayoutFile(state: PreviewModelState, { payload }) {
       return {
         ...state,
+        loading: false,
         editLayoutFile: payload.file,
       };
     },
-    cancelLayout(state: PreviewModelState) {
+    cancelEditLayout(state: PreviewModelState) {
       return {
         ...state,
         editLayoutFile: null,
