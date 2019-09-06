@@ -1,11 +1,14 @@
 import React from 'react';
 import { connect } from 'dva';
-import { Spin } from 'antd';
+import { Spin, Select } from 'antd';
 import { ConnectState } from '@/models/connect.d';
 import { FormLayout } from '@/models/preview';
 import { Motion, spring, OpaqueConfig } from 'react-motion';
 import styles from './LayoutEditor.less';
 import { Dispatch } from 'redux';
+import { FormItemType, EnumHelpers } from '@/constant';
+
+const Option = Select.Option;
 
 interface LayoutEditorProps {
   formLayout: FormLayout[],
@@ -13,9 +16,11 @@ interface LayoutEditorProps {
   editLayoutLoading: boolean,
 };
 
-const RowHeight = 30;
+const RowHeight = 40;
 const RowMargin = 10;
 const ContentWidth = 430;
+
+const stopPropagationHandler: React.MouseEventHandler = (e) => e.stopPropagation;
 
 const allColors = [
   '#EF767A', '#456990', '#49BEAA', '#49DCB1', '#EEB868', '#EF767A', '#456990',
@@ -198,6 +203,21 @@ class LayoutEditor extends React.Component<LayoutEditorProps, {
     });
   }
 
+  handleSelectFormItemType = (value: number, option: React.ReactElement) => {
+    const { key } = option;
+    const { dispatch } = this.props;
+
+    if (key) {
+      dispatch({
+        type: 'preview/updateLayoutType',
+        payload: {
+          key: Number(key),
+          type: value,
+        }
+      });
+    }
+  }
+
   render() {
     const { formLayout, editLayoutLoading } = this.props;
     const { isPressed, mouseXY, mouseLeftResizeX, lastPressLeftResize, mouseRightResizeX, lastPressRightResize } = this.state;
@@ -248,6 +268,7 @@ class LayoutEditor extends React.Component<LayoutEditorProps, {
                         onMouseDown={(evt) => this.handleMouseDown(layout.row, formLayout, motionStyles, evt)}
                         style={{
                           height: RowHeight,
+                          borderRadius: 3,
                           width: `${width}%`,
                           backgroundColor: allColors[layout.key % allColors.length],
                           WebkitTransform: `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`,
@@ -255,6 +276,16 @@ class LayoutEditor extends React.Component<LayoutEditorProps, {
                           zIndex: scale > 1 ? 1 : 0,
                         }}
                       >
+                        <div className={styles.itemTypeSelector}>
+                          <Select value={layout.type} size="small" onSelect={this.handleSelectFormItemType}>
+                            {EnumHelpers.getNamesAndValues(FormItemType).map(({ name, value }, k) => {
+                              return (
+                                <Option key={layout.key} value={value}>{name}</Option>
+                              )
+                            })}
+                          </Select>
+                        </div>
+
                         {layout.offsetAbs > 0 ? <div
                           className={styles.leftResize}
                           onMouseDown={(evt) => {

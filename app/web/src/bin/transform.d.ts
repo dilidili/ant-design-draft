@@ -42,7 +42,7 @@ export type TransformSchema =  {
 export type FormItemRule = 'required' | 'email';
 
 export type FormItem = {
-  type: 'Row' | 'Divider' | 'Button' | 'Cascader' | 'Radio.Group' | 'Input' | 'Select' | 'DatePicker.RangePicker' | 'TimePicker';
+  type: string;
   name?: string; // values.name
   options?: Array<{
     value: any;

@@ -1,6 +1,7 @@
 import { Reducer, Effect } from './connect.d';
 import { UploadFile } from 'antd/lib/upload/interface'
 import { Action } from 'redux';
+import { FormItemType } from '@/constant';
 
 export type FormLayout = {
   span: number;
@@ -8,6 +9,7 @@ export type FormLayout = {
   offsetAbs: number;
   row: number;
   key: number;
+  type: FormItemType;
 };
 
 export interface PreviewModelState {
@@ -49,6 +51,13 @@ interface UploadImageAction extends Action {
   }
 }
 
+interface UpdateLayoutTypeAction extends Action {
+  payload: {
+    key: number;
+    type: FormItemType;
+  }
+}
+
 const normalize = (length: number): number => Math.round(length / 4) * 4;
 
 export interface ModelType {
@@ -60,6 +69,7 @@ export interface ModelType {
   reducers: {
     uploadImageChange: Reducer<PreviewModelState, UploadImageAction>;
     updateFormLayout: Reducer<PreviewModelState, UpdateFormLayoutAction>;
+    updateLayoutType: Reducer<PreviewModelState, UpdateLayoutTypeAction>;
     cancelEditLayout: Reducer<PreviewModelState>;
     updateEditLayoutFile: Reducer<PreviewModelState, UpdateEditLayoutFileAction>;
     switchFormItemRow: Reducer<PreviewModelState, SwitchFormItemRowAction>;
@@ -135,6 +145,7 @@ const Model: ModelType = {
           const formLayout = layout.reduce((r, v) => {
             v.forEach(w => {
               w.key = key;
+              w.type = FormItemType.Input; // default component type
               key++;
               r.push(w);
             });
@@ -170,6 +181,19 @@ const Model: ModelType = {
       return {
         ...state,
         formLayout: payload.formLayout,
+      };
+    },
+    updateLayoutType(state: PreviewModelState, { payload }) {
+      return {
+        ...state,
+        formLayout: state.formLayout.map(layout => {
+          if (layout.key === payload.key) {
+            layout.type = payload.type;
+            return layout;
+          } else {
+            return layout;
+          }
+        }),
       };
     },
     updateEditLayoutFile(state: PreviewModelState, { payload }) {

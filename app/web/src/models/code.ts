@@ -4,6 +4,7 @@ import transformSchema from '@/bin/transform';
 import { FormItem } from '@/bin/transform.d';
 import { Effect, EffectWithType, Reducer, ConnectState } from './connect.d';
 import { FormLayout } from './preview';
+import { FormItemType } from '@/constant';
 
 const demoRawContent = `{"blocks":[{"key":"1ma6i","text":"const schema = {","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"2f1sa","text":"  name: 'HorizontalLoginForm',","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"5j6bu","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"8l8vt","text":"  form: {","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"4llb3","text":"    props: {","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"4jhih","text":"      layout: 'inline',","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"cl47h","text":"    },","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"c9n8k","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"edq3l","text":"    items: [","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"cojg3","text":"      // username","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"2vgss","text":"      {","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"2l72n","text":"        name: 'username',","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"21ria","text":"        rules: ['required'],","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"anpah","text":"  ","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"423kn","text":"        type: 'Input',","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"52fsd","text":"      },","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"aelff","text":"  ","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"40p9e","text":"      // password","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"31k57","text":"      {","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"ktc0","text":"        name: 'password',","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"botp5","text":"        rules: ['required'],","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"9sloo","text":"  ","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"d9npm","text":"        type: 'Input',","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"9h247","text":"        props: {","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"6rpb4","text":"          type: 'password',","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"c6l2o","text":"        },","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"7ic43","text":"      },","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"fv824","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"cbt3i","text":"      // login button","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"9f4k","text":"      {","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"bgd6a","text":"        type: 'Button',","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"2c6uj","text":"        onSubmit: true,","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"435o5","text":"        props: {","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"425ki","text":"          type: 'primary',","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"9f2o9","text":"          children: 'Log in',","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"8jljq","text":"        } ","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"6v5i0","text":"      },","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"efa9e","text":"    ],","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"422l5","text":"  },","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"8rjeg","text":"}","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}}],"entityMap":{}}`;
 const EMPTY_CONFIG_TEXT = `const schema = {
@@ -30,11 +31,29 @@ export enum ReactAPI {
 const delay = (ms: number, val: [any]) => new Promise(res => setTimeout(() => res(val), ms));
 
 const mapLayoutToFormItem = (layout: FormLayout): FormItem => {
-  return {
-    type: 'Input',
+  const ret: FormItem = {
+    type: FormItemType[layout.type],
     name: `item_${layout.key}`,
     label: ``,
+  };
+
+  switch(layout.type) {
+    case FormItemType.Button: 
+      ret.props = {
+        type: 'primary',
+        style: {
+          width: '100%',
+        },
+        children: 'Button',
+      }
+      break;
+    case FormItemType.Checkbox:
+      ret.props = {
+        children: 'Checkbox',
+      }
   }
+
+  return ret;
 }
 
 const mapLayoutsToFormItems = (layouts: FormLayout[]): FormItem[] => {

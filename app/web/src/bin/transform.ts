@@ -465,7 +465,7 @@ const transformField = (fieldName: keyof TransformSchema, schema: TransformSchem
   }
 };
 
-const renderProps = (child: Element, renderEntries: any) => {
+const renderProps = (child: Element, renderEntries: any, indentNums: number) => {
   const props = child.props || {};
 
   return Object.keys(props).reduce((r, k) => {
@@ -484,17 +484,8 @@ const renderProps = (child: Element, renderEntries: any) => {
       return r + ` ${k}={${JSON.stringify(prop)}}`;
     } else if (typeof prop === 'object') {
       const typeName = child.type.replace('.', '');
-      let propName = `${typeName[0].toLowerCase()}${typeName.slice(1)}${k[0].toUpperCase()}${k.slice(1)}Prop`;
-
-      while (Object.keys(renderEntries.declareMap).some((k) => renderEntries.declareMap[k] === propName)) {
-        propName += '1';
-      }
-      const declareMapKey = JSON.stringify(prop, null, 2);
-      if (renderEntries.declareMap[declareMapKey]) {
-        propName = declareMapKey;
-      } else {
-        renderEntries.declareMap[JSON.stringify(prop, null, 2)] = propName;
-      }
+      const propName = `${typeName[0].toLowerCase()}${typeName.slice(1)}${k[0].toUpperCase()}${k.slice(1)}Prop`;
+      renderEntries.declareMap[JSON.stringify(prop, null, 2)] = propName;
 
       return r + ` ${k}={${propName}}`;
     } 
@@ -515,7 +506,7 @@ const renderElements = (children: Element[] | string, indentNums: number, entrie
         } = child;
   
         child.props = child.props || {};
-        const props = renderProps(child, renderEntries);
+        const props = renderProps(child, renderEntries, indentNums);
         const nextLevelChildren = child.children || child.props.children;
   
         if (type === 'custom' && child && child.render) {

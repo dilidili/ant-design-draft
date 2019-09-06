@@ -9,6 +9,7 @@ import styles from './Preview.less';
 // import stylesheets for preview components.
 import 'antd/es/date-picker/style';
 import 'antd/es/divider/style';
+import 'antd/es/checkbox/style';
 (window as any).React = React;
 (window as any).AntD = require('antd');
 
