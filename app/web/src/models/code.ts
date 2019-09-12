@@ -38,6 +38,19 @@ const mapLayoutToFormItem = (layout: FormLayout): FormItem => {
   };
 
   switch(layout.type) {
+    case FormItemType.PrefixInput: 
+      ret.type = 'Input';
+      ret.props = {
+        prefix: 'Pre',
+      }
+      break;
+    case FormItemType.Label:
+      ret.type = 'Button';
+      ret.props = {
+        type: 'link',
+        children: 'Label'
+      }
+      break;
     case FormItemType.Button: 
       ret.props = {
         type: 'primary',

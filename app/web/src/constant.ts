@@ -22,7 +22,9 @@ export class EnumHelpers {
 }
 
 export enum FormItemType {
-  Button,
+  Button = 1,
   Checkbox,
   Input,
+  Label,
+  PrefixInput,
 };

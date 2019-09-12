@@ -98,6 +98,10 @@ formItemContours = formItemContours.map(v => {
 })
 
 formItemContours = formItemContours.map(v => classifyType(v));
+formItemContours = formItemContours.map(v => {
+  v.children = undefined;
+  return v;
+});
 
 fs.writeFileSync(targetFilePath.replace(path.extname(targetFilePath), '_bouding.json'), JSON.stringify({
   size: src.sizes,

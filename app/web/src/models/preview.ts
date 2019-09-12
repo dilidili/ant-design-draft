@@ -145,7 +145,7 @@ const Model: ModelType = {
           const formLayout = layout.reduce((r, v) => {
             v.forEach(w => {
               w.key = key;
-              w.type = FormItemType.Input; // default component type
+              w.type = FormItemType[w.type] || FormItemType.Input; // default component type
               key++;
               r.push(w);
             });
