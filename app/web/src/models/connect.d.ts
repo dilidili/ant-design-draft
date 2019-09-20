@@ -1,11 +1,13 @@
 import { CodeModelState } from './code';
 import { SaveModelState } from './save';
+import { PreviewModelState } from './preview';
 import { EffectsCommandMap, EffectType } from 'dva';
 import { AnyAction, Action } from 'redux';
 
 export interface ConnectState {
   code: CodeModelState;
   save: SaveModelState;
+  preview: PreviewModelState;
 }
 
 export type Effect = (

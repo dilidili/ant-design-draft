@@ -1,4 +1,4 @@
-const transformSchema = require('../transform');
+const transformSchema = require('../transform').default;
 const path = require('path');
 const fs = require('fs');
 

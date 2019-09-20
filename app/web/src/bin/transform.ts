@@ -36,7 +36,7 @@ const getFormItemElement = function (formItem: FormItem | Array<FormItem>, entri
   let formItemList: Array<FormItem>;
   if (!Array.isArray(formItem)) {
     if (formItem.type === 'Row') {
-      const { layout, items, props } = formItem;
+      const { layout, offset, items, props } = formItem;
       entries.antdImports.add('Row');
       entries.antdImports.add('Col');
 
@@ -49,12 +49,17 @@ const getFormItemElement = function (formItem: FormItem | Array<FormItem>, entri
         }
       }
   
-      const rowChildren = items.map((col, k) => {
+      const rowChildren = (items || []).map((col, k) => {
+        const childProps = {} as {
+          span?: number;
+          offset?: number;
+        };
+        if (layout) childProps.span = layout[k];
+        if (offset) childProps.offset = offset[k];
+
         return {
           type: 'Col',
-          props: {
-            span: layout[k],
-          },
+          props: childProps,
           children: [getFormItemElement(col, entries, formProps, config, itemsAst ? itemsAst[k] : undefined)],
         }
       })
@@ -460,7 +465,7 @@ const transformField = (fieldName: keyof TransformSchema, schema: TransformSchem
   }
 };
 
-const renderProps = (child: Element, renderEntries: any) => {
+const renderProps = (child: Element, renderEntries: any, indentNums: number) => {
   const props = child.props || {};
 
   return Object.keys(props).reduce((r, k) => {
@@ -479,17 +484,8 @@ const renderProps = (child: Element, renderEntries: any) => {
       return r + ` ${k}={${JSON.stringify(prop)}}`;
     } else if (typeof prop === 'object') {
       const typeName = child.type.replace('.', '');
-      let propName = `${typeName[0].toLowerCase()}${typeName.slice(1)}${k[0].toUpperCase()}${k.slice(1)}Prop`;
-
-      while (Object.keys(renderEntries.declareMap).some((k) => renderEntries.declareMap[k] === propName)) {
-        propName += '1';
-      }
-      const declareMapKey = JSON.stringify(prop, null, 2);
-      if (renderEntries.declareMap[declareMapKey]) {
-        propName = declareMapKey;
-      } else {
-        renderEntries.declareMap[JSON.stringify(prop, null, 2)] = propName;
-      }
+      const propName = `${typeName[0].toLowerCase()}${typeName.slice(1)}${k[0].toUpperCase()}${k.slice(1)}Prop`;
+      renderEntries.declareMap[JSON.stringify(prop, null, 2)] = propName;
 
       return r + ` ${k}={${propName}}`;
     } 
@@ -510,7 +506,7 @@ const renderElements = (children: Element[] | string, indentNums: number, entrie
         } = child;
   
         child.props = child.props || {};
-        const props = renderProps(child, renderEntries);
+        const props = renderProps(child, renderEntries, indentNums);
         const nextLevelChildren = child.children || child.props.children;
   
         if (type === 'custom' && child && child.render) {
