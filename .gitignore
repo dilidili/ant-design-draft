@@ -11,6 +11,9 @@
 /app/public
 /config/manifest.json
 
+# test
+/test/resource/*.json
+
 # misc
 .DS_Store
 .vscode

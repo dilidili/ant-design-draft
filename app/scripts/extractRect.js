@@ -2,27 +2,42 @@ const cv = require("opencv4nodejs");
 const process = require("process");
 const path = require("path");
 const fs = require("fs");
+const exec = require('child_process').exec;
 const { classifyType, containRect, isEqualRect } = require("./classifyType");
 
 const RED = new cv.Vec(0, 0, 255);
-const shouldWriteOutput = true;
 
 // [ '/usr/local/bin/node',
 //   'extractReact.js',
-//   '/tmp/fun.drafter/test.png' ]
+//   '/tmp/fun.drafter/test.png',
+//   1,
+// ]
 const targetFilePath = process.argv[2];
+const isDebug = process.argv[3] == '1';
+
+if (process.argv[3] === '2') {
+  exec('rm *.png');
+  exec('rm *.json');
+}
 
 const src = cv.imread(targetFilePath);
 const blur = src.gaussianBlur(new cv.Size(5, 5), 0);
 const gray = blur.cvtColor(cv.COLOR_RGBA2GRAY);
 const canny = gray.canny(0, 100);
+
+if (isDebug) {
+  cv.imwrite('canny.png', canny);
+}
+
 const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(15, 5));
 const dilate = canny.morphologyEx(
   kernel,
   cv.MORPH_CLOSE,
 );
 
-cv.imwrite('dilate.png', dilate);
+if (isDebug) {
+  cv.imwrite('dilate.png', dilate);
+}
 
 let contours = dilate.findContours(cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE);
 
@@ -40,10 +55,11 @@ contours = contours.map(v => v.boundingRect());
 
 // filter outer contour.
 contours = contours.filter(v => v.x + v.y + src.sizes[0] - v.height + src.sizes[1] - v.width > 20);
+
 // remove duplicated contours.
 contours = contours.filter((v, index) => contours.findIndex(w => isEqualRect(w, v)) === index);
 
-// filter the form item which is direct child contour.
+// filter form items which is direct a child contour of the root.
 let formItemContours = contours.filter(v => !contours.some(w => !isEqualRect(v, w) && containRect(w, v)));
 
 // merge form items parts.
@@ -88,36 +104,36 @@ while (i < formItemContours.length) {
 formItemContours = formItemContours.filter(v => !!v);
 formItemContours = formItemContours.filter(v => !formItemContours.some(w => v !== w && containRect(w, v)));
 
-if (shouldWriteOutput) {
-  for (let i = 0; i < contours.length; i++) {
-    const contour = contours[i];
+if (isDebug) {
+  for (let i = 0; i < formItemContours.length; i++) {
+    const contour = formItemContours[i];
 
     src.drawRectangle(contour, RED, 1);
   }
+
+  cv.imwrite('contour.png', src);
 }
 
+const types = classifyType(formItemContours, canny, contours, isDebug);
+if (isDebug) {
+  console.log(types);
+}
+const bounding = formItemContours.map((v, index) => {
+  const type = types[index];
+  return {
+    ...v,
+    ...type,
+  };
+});
 
-// // filter form item direct children.
-// formItemContours = formItemContours.map(v => {
-//   v.children = contours.filter(w => v !== w && containRect(v, w));
-//   v.children = v.children.map(v => ({ ...v }));
-//   return v;
-// })
-
-formItemContours = classifyType(formItemContours, canny, contours, gray);
-// // formItemContours = formItemContours.map(v => {
-// //   v.children = undefined;
-// //   return v;
-// // });
-
-// fs.writeFileSync(targetFilePath.replace(path.extname(targetFilePath), '_bouding.json'), JSON.stringify({
-//   size: src.sizes,
-//   contours: formItemContours,
-// }, null, 2));
-
-// if (shouldWriteOutput) {
-//   cv.imwrite(targetFilePath.replace(path.extname(targetFilePath), `_bouding.${path.extname(targetFilePath)}`), src);
-// }
-
-cv.imwrite('contour.png', src);
-cv.imwrite('canny.png', canny);
+if (isDebug) {
+  fs.writeFileSync('bouding.json', JSON.stringify({
+    size: src.sizes,
+    contours: bounding,
+  }, null, 2));
+} else {
+  fs.writeFileSync(targetFilePath.replace(path.extname(targetFilePath), '_bouding.json'), JSON.stringify({
+    size: src.sizes,
+    contours: bounding,
+  }, null, 2));
+}
